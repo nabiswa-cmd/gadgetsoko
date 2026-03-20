@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Orders</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        table th {
+            background: #0f4c81;
+            color: white;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .pending { background: orange; }
+        .shipped { background: blue; }
+        .delivered { background: green; }
+
+        .btn {
+            padding: 6px 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .btn-update {
+            background: #0f4c81;
+            color: white;
+        }
+
+        .btn-delete {
+            background: red;
+            color: white;
+        }
+
+        select {
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Manage Orders</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Date</th>
+                <th>Update</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.customer_name }}</td>
+                <td>{{ order.customer_email }}</td>
+                <td>KES {{ order.total_amount }}</td>
+
+                <td>
+                    <span class="status 
+                        {% if order.status == 'Pending' %}pending{% endif %}
+                        {% if order.status == 'Shipped' %}shipped{% endif %}
+                        {% if order.status == 'Delivered' %}delivered{% endif %}
+                    ">
+                        {{ order.status }}
+                    </span>
+                </td>
+
+                <td>{{ order.payment_status }}</td>
+                <td>{{ order.created_at }}</td>
+
+                <td>
+                    <form method="POST" action="{% url 'update_order_status' order.id %}">
+                        {% csrf_token %}
+
+                        <select name="status">
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                        </select>
+
+                        <button type="submit" class="btn btn-update">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8">No orders found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

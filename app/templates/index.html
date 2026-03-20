@@ -1,0 +1,268 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+
+    <!-- Favicon (tab logo) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/logo-32x32.png' %}">
+
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+</head>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="header">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>Language</div>
+    <div>
+        <a href="{% url 'login' %}?next=/dashboard/">Admin Login</a> |
+        <a href="#contact">Contact</a>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <div class="navbar">
+
+    <!-- Logo -->
+    <div class="logo">
+      <a href="{% url 'index' %}">
+        <img src="{% static 'images/logo.png' %}">
+      </a>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="menu">
+        <a href="#categories">Categories</a>
+        <a href="{% url 'products' %}">products</a>
+        <a href="#services">Services</a>
+        <a href="#contact">Contact</a>
+    
+    <a href="{% url 'userlog' %}">Login</a>
+
+    </nav>
+
+    <!-- Search -->
+    <div class="search-box">
+      <input type="text" placeholder="Search products...">
+      <button>🔍</button>
+    </div>
+
+    <!-- Cart -->
+    <div class="cart">
+      🛒 <span>{{ request.user.cartitem_set.count }}</span>
+    </div>
+
+  </div>
+</header>
+
+
+<!-- BANNER -->
+<section class="banner">
+  <img id="bannerImage" src="{% static 'images/photo1.jpg' %}">
+</section>
+
+
+<!-- CATEGORIES -->
+<section id="categories" class="section">
+<h2>Device Categories</h2>
+
+<div class="category-grid">
+
+  <a href="{% url 'products_by_brand' 'Samsung' %}">Samsung</a>
+<a href="{% url 'products_by_brand' 'Apple' %}">Apple</a>
+<a href="{% url 'products_by_brand' 'Nokia' %}">Nokia</a>
+<a href="{% url 'products_by_brand' 'Tecno' %}">Tecno</a>
+<a href="{% url 'products_by_brand' 'HP' %}">HP</a>
+
+
+
+</div>
+
+<div id="deviceList" class="device-list"></div>
+
+</section>
+
+
+<!-- SERVICES -->
+<section id="services" class="section">
+
+<h2>Our Services</h2>
+
+<div class="services">
+
+<div class="service">
+<span class="icon">🚚</span>
+<h3>Free Delivery</h3>
+<p>We deliver gadgets across Kenya at no extra cost.</p>
+</div>
+
+<div class="service">
+<span class="icon">💰</span>
+<h3>Money Back Guarantee</h3>
+<p>Return within 7 days if you are not satisfied.</p>
+</div>
+
+<div class="service">
+<span class="icon">📦</span>
+<h3>Payment on Delivery</h3>
+<p>Pay only when the product reaches your door.</p>
+</div>
+
+<div class="service">
+<span class="icon">📞</span>
+<h3>24/7 Customer Support</h3>
+<p>Our support team is always ready to assist.</p>
+</div>
+
+<div class="service">
+<span class="icon">🛡️</span>
+<h3>Warranty</h3>
+<p>Most devices come with warranty protection.</p>
+</div>
+
+<div class="service">
+<span class="icon">🔧</span>
+<h3>Free Repair Service</h3>
+<p>We offer repair services for purchased gadgets.</p>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- PRODUCTS -->
+<div class="product-grid">
+  {% for product in products %}
+<div class="product-card">
+
+    {% if product.image %}
+    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+{% else %}
+    <img src="/static/images/default.png" alt="No image available">
+{% endif %}
+
+    <h3>{{ product.name }}</h3>
+    <p>KES {{ product.price }}</p>
+    {% if product.id %}
+<a href="{% url 'product_detail' product.id %}">
+    <button>View</button>
+</a>
+
+<a href="{% url 'add_to_cart' product.id %}">
+    <button>Add to Cart</button>
+</a>
+{% endif %}
+
+    
+
+
+    </div>
+    {% endfor %}
+</div>
+
+
+
+
+
+<!-- CONTACT -->
+<section id="contact" class="section">
+
+<h2>Contact Us</h2>
+
+<p>📞 0727698319</p>
+<p>📧 support@gadgetsoko.co.ke</p>
+<p>📍 Nairobi, Kenya</p>
+
+</section>
+
+
+<!-- Banner rotation -->
+<script>
+
+const banner = document.getElementById("bannerImage");
+
+const rotatingPhotos = [
+"{% static 'images/f.png' %}",
+"{% static 'images/photo1.png' %}",
+"{% static 'images/photo2.png' %}",
+"{% static 'images/repl.png' %}"
+];
+
+let currentIndex = 0;
+
+setInterval(()=>{
+currentIndex = (currentIndex + 1) % rotatingPhotos.length;
+banner.src = rotatingPhotos[currentIndex];
+},3500);
+
+</script>
+
+
+<!-- Category JS -->
+<script>
+
+const devices = {
+
+Laptops:["Dell","HP","Lenovo","MacBook","Asus"],
+
+Phones:["iPhone","Samsung","Xiaomi","Tecno","Infinix"],
+
+Tablets:["iPad","Samsung Tab","Lenovo Tab"],
+
+Accessories:["Mouse","Keyboard","Chargers","Headphones"],
+
+Gaming:["PS5","Xbox","Gaming Laptop"]
+};
+
+const buttons = document.querySelectorAll(".category-btn");
+
+const deviceList = document.getElementById("deviceList");
+
+buttons.forEach(btn=>{
+btn.onclick=()=>{
+let category = btn.innerText;
+let list = devices[category];
+
+deviceList.innerHTML = "<ul>" +
+list.map(d=>"<li>"+d+"</li>").join("")
++"</ul>";
+};
+});
+
+</script>
+
+
+<!-- Login JS -->
+<script>
+
+function showLogin(type){
+
+const form = document.getElementById("loginForm");
+
+form.innerHTML = `
+
+<h3>${type} Login</h3>
+
+<input type="text" placeholder="Username">
+
+<input type="password" placeholder="Password">
+
+<button>Login</button>
+
+`;
+
+}
+
+</script>
+
+
+<script src="{% static 'js/login.js' %}"></script>
+
+</body>
+</html>

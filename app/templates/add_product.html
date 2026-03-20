@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Product</title>
+    <link rel="stylesheet" href="{% static 'css/addProducts.css' %}">
+</head>
+<body>
+
+<h2>Add New Product</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label>Product Name</label>
+    <input type="text" name="name" required>
+
+    <label>Brand</label>
+<select name="brand" required>
+    <option value="">Select Brand</option>
+    {% for brand in brands %}
+        <option value="{{ brand.id }}">{{ brand.name }}</option>
+    {% endfor %}
+</select>
+
+
+    <label>Price (KES)</label>
+    <input type="number" name="price" required step="0.01">
+
+    <label>Discount (%)</label>
+    <input type="number" name="discount" value="0" step="0.01">
+
+    <label>Stock</label>
+    <input type="number" name="stock" required>
+
+    <label>Category</label>
+    <select name="category">
+        <option value="">-- Select Existing Category --</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+        {% endfor %}
+    </select>
+
+    <label>Or Add New Category</label>
+    <input type="text" name="new_category">
+
+    <label>Product Images (2+)</label>
+    <input type="file" name="images" multiple required>
+
+    <label>Specifications</label>
+    <textarea name="specifications"></textarea>
+
+    <button type="submit" class="btn">Add Product</button>
+</form>
+
+
+</body>
+</html>

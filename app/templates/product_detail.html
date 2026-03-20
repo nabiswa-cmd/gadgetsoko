@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Login | Gadget Soko Kenya</title>
+
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+
+</head>
+
+<body>
+    <h2>{{ product.name }}</h2>
+
+<img src="{{ product.image.url }}" width="300">
+
+<p>Price: KES {{ product.price }}</p>
+<p>Views: {{ product.views }}</p>
+
+<a href="{% url 'add_to_cart' product.id %}">
+    <button>Add to Cart</button>
+</a>
+</body>
+</html>
+
+    

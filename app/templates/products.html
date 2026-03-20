@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>Products | Gadget Soko Kenya</title>
+
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="header">
+
+<div class="topbar">
+<div>Language</div>
+
+<div>
+<a href="{% url 'login' %}" style="color:white;">Login</a> |
+<a href="#" style="color:white;">Contact</a>
+</div>
+</div>
+
+<div class="navbar">
+
+<div class="logo">
+<a href="{% url 'index' %}" style="color:white;">Gadget Soko</a>
+</div>
+
+<nav class="menu">
+<a href="{% url 'products' %}">Products</a>
+<a href="#">Services</a>
+</nav>
+
+<div class="cart">
+<a href="{% url 'view_cart' %}" style="color:white;">
+🛒 ({{ cart_count }})
+</a>
+</div>
+
+</div>
+
+</header>
+
+<!-- CATEGORY FILTER DROPDOWN -->
+<div class="filters">
+<form method="get">
+    <select name="category" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}"
+                {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>
+                {{ cat.name }}
+            </option>
+        {% endfor %}
+    </select>
+</form>
+</div>
+
+<!-- PRODUCTS -->
+<section class="product-grid">
+
+{% for product in products %}
+<div class="product">
+
+    {% if product.images.all %}
+        {% with product.images.all.0 as img %}
+            <img src="{{ img.image.url }}">
+        {% endwith %}
+    {% else %}
+        <img src="{% static 'images/default.png' %}">
+    {% endif %}
+
+    <h3>{{ product.name }}</h3>
+
+    <div class="price">
+        {% if product.discount > 0 %}
+            <span style="text-decoration: line-through; color:red;">
+                KES {{ product.price }}
+            </span><br>
+            <strong style="color:green;">
+                KES {{ product.discounted_price }}
+            </strong>
+        {% else %}
+            <strong>KES {{ product.price }}</strong>
+        {% endif %}
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <a href="{% url 'add_to_cart' product.id %}" class="btn btn-cart">
+        Add to Cart
+    </a>
+
+    <a href="{% url 'product_detail' product.id %}" class="btn btn-view">
+        View
+    </a>
+
+</div>
+
+{% empty %}
+<p style="padding:20px;">No products available</p>
+{% endfor %}
+
+</section>
+
+</body>
+</html>

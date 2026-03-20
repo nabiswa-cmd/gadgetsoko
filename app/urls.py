@@ -1,0 +1,51 @@
+from django.contrib import admin
+from django.urls import path, include
+from app import views  # replace with your actual app name
+
+urlpatterns = [
+    
+
+    # Homepage,v
+    path('', views.index_view, name='index'),
+
+    path('index/', views.index_view, name='index'),
+    path('check/',views.check,name='check'),
+
+    # App routes
+    path('products/', views.products_view, name='products'),
+    path('products/<int:pk>/', views.product_detail, name='product_detail'),
+    path('cart/', views.view_cart, name='view_cart'),
+    path('brand/<str:brand_name>/', views.products_by_brand, name='products_by_brand'),
+
+    
+    path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
+
+    path('check/', views.check, name='check'),
+    path('brand/<str:brand_name>/', views.products_by_brand, name='products_by_brand'),
+
+    # Auth routes
+    path('userlog/', views.userlog_view, name='userlog'),
+    path('usersignup/', views.usersignup_view, name='usersignup'),
+    path('signup/', views.signup_view, name='signup'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+
+    # Dashboard
+    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('add_product/',views.add_product,name='add_product'),
+    path('manage_products',views.manage_products,name='manage_products'),
+    path('manage_orders/',views.manage_orders,name='manage_orders'),
+    path('customers/',views.customers,name='customers'),
+
+    # M-Pesa callback
+    path('payment_callback/', views.mpesa_callback, name='mpesa_callback'),
+    path('mpesa/register/', views.register_mpesa_urls, name='register_mpesa_urls'),
+    # M-Pesa routes
+
+    
+    path('update_order_status/<int:order_id>/', views.update_order_status, name='update_order_status'),
+
+    # Allauth / Google login
+    path('accounts/', include('allauth.urls')),
+]

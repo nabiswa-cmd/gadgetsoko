@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Cart | Gadget Soko Kenya</title>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { text-align: center; margin-bottom: 20px; }
+        .cart-container { max-width: 800px; margin: auto; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ccc; }
+        .cart-item img { width: 80px; height: 80px; object-fit: cover; margin-right: 10px; }
+        .cart-item p { margin: 0; }
+        .empty { text-align: center; font-size: 18px; margin-top: 50px; color: #555; }
+        .total-section { text-align: right; margin-top: 20px; }
+        .checkout-btn { padding: 10px 20px; background: #0f4c81; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
+        .checkout-btn:hover { background: #08345a; }
+        .remove-btn { color: red; text-decoration: none; margin-left: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="cart-container">
+    <h1>Your Cart</h1>
+
+    {% for item in cart_items %}
+        <div class="cart-item">
+            {% if item.product.image %}
+                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+            {% else %}
+                <img src="{% static 'images/default.png' %}" alt="No image available">
+            {% endif %}
+            <p>{{ item.product.name }} - {{ item.quantity }} x KES {{ item.price }}</p>
+            <a href="{% url 'remove_from_cart' item.id %}" class="remove-btn">Remove</a>
+        </div>
+    {% empty %}
+        <div class="empty">Your cart is empty</div>
+    {% endfor %}
+
+    {% if cart_items %}
+        <div class="total-section">
+            <h3>Total: KES {{ total }}</h3>
+            <a href="{% url 'check' %}" class="checkout-btn">Proceed to Checkout</a>
+        </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
