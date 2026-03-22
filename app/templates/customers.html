@@ -26,34 +26,29 @@
         </thead>
 
         <tbody>
-            {% for order in orders %}
-            <tr>
-                <td>{{ order.name }}</td>
-                <td>{{ order.user.username }}</td>
-                <td>{{ order.user.email }}</td>
+{% for order in orders %}
+<tr>
+    <td>{{ order.name }}</td>
+    <td>{{ order.user.username }}</td>
+    <td>{{ order.email }}</td>
 
-                <td>
-                    <ul>
-                        {% for item in order.orderitem_set.all %}
-                            <li>{{ item.product.name }} x {{ item.quantity }}</li>
-                        {% endfor %}
-                    </ul>
-                </td>
-
-                <td>{{ order.created_at }}</td>
-
-                <td>
-                    <span class="status {{ order.status|lower }}">
-                        {{ order.status }}
-                    </span>
-                </td>
-
-                <td>${{ order.total }}</td>
-
-                <td>{{ order.destination }}</td>
-            </tr>
+    <td>
+        <ul>
+            {% for item in order.items.all %}
+                <li>{{ item.product.name }} x {{ item.quantity }}</li>
             {% endfor %}
-        </tbody>
+        </ul>
+    </td>
+
+    <td>{{ order.created_at }}</td>
+    <td>{{ order.status }}</td>
+    <td>KES {{ order.total }}</td>
+    <td>{{ order.destination }}</td>
+</tr>
+{% endfor %}
+</tbody>
+
+        
     </table>
 </div>
 

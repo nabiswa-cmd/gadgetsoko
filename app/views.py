@@ -23,8 +23,8 @@ def index_view(request):
     products = Product.objects.all()
     return render(request, 'index.html', {'products': products})
 
+from .models import Brand
 
-# ================= PRODUCTS =================
 def products_view(request):
     category_id = request.GET.get('category')
 
@@ -34,25 +34,27 @@ def products_view(request):
         products = Product.objects.all()
 
     categories = Category.objects.all()
+    brands = Brand.objects.all()  # ✅ ADD THIS
 
     return render(request, 'products.html', {
         'products': products,
-        'categories': categories
+        'categories': categories,
+        'brands': brands  # ✅ CRITICAL
     })
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-
 @login_required
 def view_cart(request):
-    items = request.user.cart_items.all()
-
-    total = sum(item.product.discounted_price * item.quantity for item in items)
+    cart_items = CartItem.objects.filter(user=request.user)
+    total = sum(item.product.discounted_price * item.quantity for item in cart_items)
+    cart_count = cart_items.count()
 
     return render(request, "cart.html", {
-        "items": items,
-        "total": total
+        "cart_items": cart_items,
+        "total": total,
+        "cart_count": cart_count
     })
-
 from .models import Category
 
 def create_default_categories():
@@ -94,12 +96,14 @@ def create_default_categories():
 
     
 @staff_member_required
+@staff_member_required
 def customers(request):
-    orders = Order.objects.select_related('user').prefetch_related('orderitem_set').order_by('-created_at')
+    orders = Order.objects.select_related('user').prefetch_related('items').order_by('-created_at')
 
     return render(request, 'customers.html', {
         'orders': orders
     })
+
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, id=pk)
@@ -156,15 +160,7 @@ def add_product(request):
         "categories": categories,
         "brands": brands  # ✅ CRITICAL
     })
-@login_required
-def cart(request):
-    cart_items = CartItem.objects.filter(user=request.user)
-    total = sum(item.quantity * item.product.price for item in cart_items)
 
-    return render(request, "cart.html", {
-        "cart_items": cart_items,
-        "total": total
-    })
 
 
 @login_required
@@ -173,22 +169,22 @@ def remove_from_cart(request, item_id):
     item.delete()
     return redirect('view_cart')
 
-
-
-# ================= CHECKOUT =================
 @login_required
 def check(request):
     cart_items = CartItem.objects.filter(user=request.user)
-    total = sum(item.quantity * item.product.price for item in cart_items)
+    total = sum(item.quantity * item.product.discounted_price for item in cart_items)
 
     if request.method == "POST":
         name = request.POST.get("name")
+        email = request.POST.get("email")  # ✅ FIXED
         phone = request.POST.get("phone")
         address = request.POST.get("address")
 
+        # CREATE ORDER
         order = Order.objects.create(
             user=request.user,
             name=name,
+            email=email,
             phone=phone,
             destination=address,
             total=total,
@@ -196,16 +192,16 @@ def check(request):
             payment_status="Pending"
         )
 
+        # CREATE ORDER ITEMS
         for item in cart_items:
             OrderItem.objects.create(
                 order=order,
                 product=item.product,
                 quantity=item.quantity,
-                price=item.product.price
+                price=item.product.discounted_price
             )
 
-        cart_items.delete()
-
+        # MPESA
         response = lipa_na_mpesa(
             phone_number=phone,
             amount=total,
@@ -213,9 +209,12 @@ def check(request):
             transaction_desc="Gadget Purchase"
         )
 
-        print("STK RESPONSE:", response)
+        print("MPESA RESPONSE:", response)
 
-        return HttpResponse("Check your phone to complete payment.")
+        # CLEAR CART
+        cart_items.delete()
+
+        return redirect('dashboard')
 
     return render(request, 'check.html', {'total': total})
 
@@ -330,19 +329,18 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-
-# ================= DASHBOARD =================
 @staff_member_required
 def dashboard_view(request):
+    recent_orders = Order.objects.order_by('-created_at')[:5]
+
     return render(request, 'dashboard.html', {
         'products': Product.objects.count(),
         'orders': Order.objects.count(),
         'users': User.objects.count(),
         'revenue': sum(order.total for order in Order.objects.all()),
+        'recent_orders': recent_orders
     })
 
-
-# ================= PRODUCT MANAGEMENT =================
 @staff_member_required
 def manage_products(request):
     products = Product.objects.all().order_by('-id')
@@ -443,3 +441,52 @@ def register_mpesa_urls(request):
     response = requests.post(api_url, json=payload, headers=headers)
 
     return JsonResponse(response.json())
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import Product
+
+def update_price(request, pk):
+    if request.method == "POST":
+        product = get_object_or_404(Product, id=pk)
+        new_price = request.POST.get("price")
+
+        product.price = new_price
+        product.save()
+
+    return redirect('manage_products')
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import Product
+
+def mark_out_of_stock(request, product_id):
+    if request.method == "POST":
+        product = get_object_or_404(Product, id=product_id)
+        product.in_stock = 0  # or whatever field you use
+        product.save()
+    return redirect('manage_products')
+    # app/views.py
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import Product
+
+def live_search(request):
+    query = request.GET.get('q', '')
+    products = Product.objects.filter(name__icontains=query)[:10]  # limit results
+    # Render products HTML snippet
+    html = ""
+    for product in products:
+        html += f'''
+        <div class="product">
+            <img src="{product.image.url if product.image else '/static/images/default.png'}" alt="{product.name}">
+            <h3>{product.name}</h3>
+            <div class="price">
+                {'<span>KES '+str(product.price)+'</span> <strong>KES '+str(product.discounted_price)+'</strong>' if product.discount>0 else '<strong>KES '+str(product.price)+'</strong>'}
+            </div>
+            <div class="product-actions">
+                <button onclick="addToWishlist({product.id})">❤️ Wishlist</button>
+                <button onclick="openQuickView({product.id})">⚡ Quick View</button>
+                <a href='/add_to_cart/{product.id}/'><button>🛒 Add to Cart</button></a>
+            </div>
+        </div>
+        '''
+    return JsonResponse({'html': html})

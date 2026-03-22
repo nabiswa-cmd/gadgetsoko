@@ -100,6 +100,10 @@
                 <td>{{ order.customer_email }}</td>
                 <td>KES {{ order.total_amount }}</td>
 
+                <td>{{ order.name }}</td>
+                <td>{{ order.email }}</td>
+                <td>KES {{ order.total }}</td>
+
                 <td>
                     <span class="status 
                         {% if order.status == 'Pending' %}pending{% endif %}

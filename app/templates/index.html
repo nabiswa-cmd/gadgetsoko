@@ -2,13 +2,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
-
-    <!-- Favicon (tab logo) -->
+    <title>Gadget Soko Kenya</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/logo-32x32.png' %}">
-
     <link rel="stylesheet" href="{% static 'css/index.css' %}">
-</head>
 </head>
 
 <body>
@@ -25,244 +21,195 @@
     </div>
   </div>
 
-  <!-- Navbar -->
-  <div class="navbar">
+<!-- Navbar -->
+<div class="navbar">
 
-    <!-- Logo -->
-    <div class="logo">
-      <a href="{% url 'index' %}">
-        <img src="{% static 'images/logo.png' %}">
-      </a>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="menu">
-        <a href="#categories">Categories</a>
-        <a href="{% url 'products' %}">products</a>
-        <a href="#services">Services</a>
-        <a href="#contact">Contact</a>
-    
-    <a href="{% url 'userlog' %}">Login</a>
-
-    </nav>
-
-    <!-- Search -->
-    <div class="search-box">
-      <input type="text" placeholder="Search products...">
-      <button>🔍</button>
-    </div>
-
-    <!-- Cart -->
-    <div class="cart">
-      🛒 <span>{{ request.user.cartitem_set.count }}</span>
-    </div>
-
+  <!-- Logo -->
+  <div class="logo">
+    <a href="{% url 'index' %}">
+      <img src="{% static 'images/logo.png' %}" alt="Gadget Soko">
+    </a>
   </div>
+
+
+  <!-- Navigation -->
+  <nav class="menu">
+      <a href="#categories">Categories</a>
+      <a href="{% url 'products' %}">Products</a>
+      <a href="#services">Services</a>
+      <a href="#contact">Contact</a>
+      <a href="{% url 'userlog' %}">Login</a>
+  </nav>
+
+  <!-- Search -->
+  <div class="search-box">
+    <input type="text" id="liveSearchInput" placeholder="Search products...">
+    <button>🔍</button>
+  </div>
+
+  <!-- Cart -->
+  <div class="cart">
+    🛒 <span>{{ request.user.cart_items.count }}</span>
+  </div>
+
+</div>
 </header>
 
+<!-- SLIDE-OUT CART -->
+<div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+        <h3>Your Cart</h3>
+        <span class="close-cart" onclick="toggleCart()">×</span>
+    </div>
+    <div class="cart-items" id="cartItems">
+        {% for item in cart_items %}
+        <div class="cart-item">
+            <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
+            <div>{{ item.product.name }} x{{ item.quantity }}</div>
+            <button onclick="removeFromCart({{ item.id }})">Remove</button>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="cart-footer">
+        <strong>Total: KES {{ cart_total }}</strong>
+        <button class="checkout-btn">Checkout</button>
+    </div>
+</div>
 
 <!-- BANNER -->
 <section class="banner">
   <img id="bannerImage" src="{% static 'images/photo1.jpg' %}">
 </section>
 
-
 <!-- CATEGORIES -->
 <section id="categories" class="section">
 <h2>Device Categories</h2>
-
 <div class="category-grid">
-
   <a href="{% url 'products_by_brand' 'Samsung' %}">Samsung</a>
-<a href="{% url 'products_by_brand' 'Apple' %}">Apple</a>
-<a href="{% url 'products_by_brand' 'Nokia' %}">Nokia</a>
-<a href="{% url 'products_by_brand' 'Tecno' %}">Tecno</a>
-<a href="{% url 'products_by_brand' 'HP' %}">HP</a>
-
-
-
+  <a href="{% url 'products_by_brand' 'Apple' %}">Apple</a>
+  <a href="{% url 'products_by_brand' 'Nokia' %}">Nokia</a>
+  <a href="{% url 'products_by_brand' 'Tecno' %}">Tecno</a>
+  <a href="{% url 'products_by_brand' 'HP' %}">HP</a>
 </div>
-
 <div id="deviceList" class="device-list"></div>
-
 </section>
-
 
 <!-- SERVICES -->
 <section id="services" class="section">
-
 <h2>Our Services</h2>
-
 <div class="services">
-
-<div class="service">
-<span class="icon">🚚</span>
-<h3>Free Delivery</h3>
-<p>We deliver gadgets across Kenya at no extra cost.</p>
+  <div class="service"><span>🚚</span><h3>Free Delivery</h3><p>We deliver gadgets across Kenya at no extra cost.</p></div>
+  <div class="service"><span>💰</span><h3>Money Back Guarantee</h3><p>Return within 7 days if you are not satisfied.</p></div>
+  <div class="service"><span>📦</span><h3>Payment on Delivery</h3><p>Pay only when the product reaches your door.</p></div>
+  <div class="service"><span>📞</span><h3>24/7 Support</h3><p>Our support team is always ready to assist.</p></div>
+  <div class="service"><span>🛡️</span><h3>Warranty</h3><p>Most devices come with warranty protection.</p></div>
+  <div class="service"><span>🔧</span><h3>Free Repairs</h3><p>We offer repair services for purchased gadgets.</p></div>
 </div>
-
-<div class="service">
-<span class="icon">💰</span>
-<h3>Money Back Guarantee</h3>
-<p>Return within 7 days if you are not satisfied.</p>
-</div>
-
-<div class="service">
-<span class="icon">📦</span>
-<h3>Payment on Delivery</h3>
-<p>Pay only when the product reaches your door.</p>
-</div>
-
-<div class="service">
-<span class="icon">📞</span>
-<h3>24/7 Customer Support</h3>
-<p>Our support team is always ready to assist.</p>
-</div>
-
-<div class="service">
-<span class="icon">🛡️</span>
-<h3>Warranty</h3>
-<p>Most devices come with warranty protection.</p>
-</div>
-
-<div class="service">
-<span class="icon">🔧</span>
-<h3>Free Repair Service</h3>
-<p>We offer repair services for purchased gadgets.</p>
-</div>
-
-</div>
-
 </section>
 
-
-<!-- PRODUCTS -->
+<!-- PRODUCTS GRID -->
+<section class="products">
+<h2>Featured Products</h2>
 <div class="product-grid">
   {% for product in products %}
-<div class="product-card">
+  <div class="product">
+      {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.name }}">
+      {% else %}
+      <img src="{% static 'images/default.png' %}" alt="No image">
+      {% endif %}
+      
+      <h3>{{ product.name }}</h3>
+      <div class="price">
+        {% if product.discount > 0 %}
+        <span>KES {{ product.price }}</span>
+        <strong>KES {{ product.discounted_price }}</strong>
+        {% else %}
+        <strong>KES {{ product.price }}</strong>
+        {% endif %}
+      </div>
 
-    {% if product.image %}
-    <img src="{{ product.image.url }}" alt="{{ product.name }}">
-{% else %}
-    <img src="/static/images/default.png" alt="No image available">
-{% endif %}
-
-    <h3>{{ product.name }}</h3>
-    <p>KES {{ product.price }}</p>
-    {% if product.id %}
-<a href="{% url 'product_detail' product.id %}">
-    <button>View</button>
-</a>
-
-<a href="{% url 'add_to_cart' product.id %}">
-    <button>Add to Cart</button>
-</a>
-{% endif %}
-
-    
-
-
-    </div>
-    {% endfor %}
+      <div class="product-actions">
+        <button onclick="addToWishlist({{ product.id }})">❤️ Wishlist</button>
+        <button onclick="openQuickView({{ product.id }})">⚡ Quick View</button>
+        <a href="{% url 'add_to_cart' product.id %}"><button>🛒 Add to Cart</button></a>
+      </div>
+  </div>
+  {% endfor %}
 </div>
-
-
-
-
+</section>
 
 <!-- CONTACT -->
 <section id="contact" class="section">
-
 <h2>Contact Us</h2>
-
 <p>📞 0727698319</p>
 <p>📧 support@gadgetsoko.co.ke</p>
 <p>📍 Nairobi, Kenya</p>
-
 </section>
 
+<!-- QUICK VIEW MODAL -->
+<div id="quickViewModal" class="quick-view-modal">
+  <div class="quick-view-content">
+      <span class="close-quick-view" onclick="closeQuickView()">×</span>
+      <div id="quickViewBody"></div>
+  </div>
+</div>
 
-<!-- Banner rotation -->
+<!-- JS -->
+<script src="{% static 'js/jquery.min.js' %}"></script>
 <script>
-
+/* Banner rotation */
 const banner = document.getElementById("bannerImage");
-
 const rotatingPhotos = [
 "{% static 'images/f.png' %}",
 "{% static 'images/photo1.png' %}",
 "{% static 'images/photo2.png' %}",
 "{% static 'images/repl.png' %}"
 ];
-
 let currentIndex = 0;
-
 setInterval(()=>{
 currentIndex = (currentIndex + 1) % rotatingPhotos.length;
 banner.src = rotatingPhotos[currentIndex];
 },3500);
 
-</script>
-
-
-<!-- Category JS -->
-<script>
-
-const devices = {
-
-Laptops:["Dell","HP","Lenovo","MacBook","Asus"],
-
-Phones:["iPhone","Samsung","Xiaomi","Tecno","Infinix"],
-
-Tablets:["iPad","Samsung Tab","Lenovo Tab"],
-
-Accessories:["Mouse","Keyboard","Chargers","Headphones"],
-
-Gaming:["PS5","Xbox","Gaming Laptop"]
-};
-
-const buttons = document.querySelectorAll(".category-btn");
-
-const deviceList = document.getElementById("deviceList");
-
-buttons.forEach(btn=>{
-btn.onclick=()=>{
-let category = btn.innerText;
-let list = devices[category];
-
-deviceList.innerHTML = "<ul>" +
-list.map(d=>"<li>"+d+"</li>").join("")
-+"</ul>";
-};
-});
-
-</script>
-
-
-<!-- Login JS -->
-<script>
-
-function showLogin(type){
-
-const form = document.getElementById("loginForm");
-
-form.innerHTML = `
-
-<h3>${type} Login</h3>
-
-<input type="text" placeholder="Username">
-
-<input type="password" placeholder="Password">
-
-<button>Login</button>
-
-`;
-
+/* Slide-out cart */
+function toggleCart() {
+    document.getElementById('cartSidebar').classList.toggle('active');
+}
+function removeFromCart(itemId) {
+    // AJAX POST to Django view to remove
 }
 
+/* Wishlist */
+function addToWishlist(productId) {
+    alert("Added product " + productId + " to wishlist!");
+    // Implement AJAX call to save in DB
+}
+
+/* Quick view */
+function openQuickView(productId) {
+    const modal = document.getElementById('quickViewModal');
+    const body = document.getElementById('quickViewBody');
+    body.innerHTML = "Loading product details...";
+    modal.style.display = "block";
+    // AJAX call to get product HTML from Django view
+}
+function closeQuickView() {
+    document.getElementById('quickViewModal').style.display = "none";
+}
+
+/* Live Search */
+$('#liveSearchInput').on('keyup', function(){
+    let query = $(this).val();
+    $.ajax({
+        url: "{% url 'live_search' %}",
+        data: {'q': query},
+        success: function(data){
+            $('.product-grid').html(data.html);
+        }
+    });
+});
 </script>
-
-
-<script src="{% static 'js/login.js' %}"></script>
 
 </body>
 </html>

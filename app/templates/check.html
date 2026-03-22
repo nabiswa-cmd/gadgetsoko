@@ -106,7 +106,7 @@ button:hover{
             <a href="#contact">Contact</a>
         </nav>
         <div class="cart">
-            <a href="{% url 'cart' %}">🛒</a>
+            <a href="{% url 'view_cart' %}">🛒</a>
         </div>
     </div>
 </header>
@@ -144,10 +144,16 @@ Total: KSh <span id="cartTotal">0</span>
 </form>
 
 </div>
+{% for item in cart_items %}
+<div class="cart-item">
+    <span>{{ item.product.name }}</span>
+    <span>KES {{ item.product.price }}</span>
+</div>
+{% endfor %}
 
 <script>
 // Load cart from localStorage
-let cart = JSON.parse(localStorage.getItem("guestCart")) || [];
+
 let cartItems = document.getElementById("cartItems");
 let total = 0;
 

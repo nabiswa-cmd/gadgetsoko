@@ -14,7 +14,7 @@ urlpatterns = [
     # App routes
     path('products/', views.products_view, name='products'),
     path('products/<int:pk>/', views.product_detail, name='product_detail'),
-    path('cart/', views.view_cart, name='view_cart'),
+    path('cart/', views.view_cart, name='view_cart'),                       
     path('brand/<str:brand_name>/', views.products_by_brand, name='products_by_brand'),
 
     
@@ -45,7 +45,11 @@ urlpatterns = [
 
     
     path('update_order_status/<int:order_id>/', views.update_order_status, name='update_order_status'),
+    path('update-price/<int:pk>/', views.update_price, name='update_price'),
+    path('mark-out-of-stock/<int:product_id>/', views.mark_out_of_stock, name='mark_out_of_stock'),
+
 
     # Allauth / Google login
     path('accounts/', include('allauth.urls')),
+    path('live-search/', views.live_search, name='live_search'),
 ]
