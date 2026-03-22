@@ -114,11 +114,14 @@ def product_detail(request, pk):
 
 def products_by_brand(request, brand_name):
     products = Product.objects.filter(brand__name=brand_name)
-    return render(request, 'products_by_brand.html', {
+    brands = Brand.objects.all()
+    categories = Category.objects.all()
+
+    return render(request, 'products.html', {  # ✅ use SAME template
         'products': products,
-        'brand': brand_name
+        'brands': brands,
+        'categories': categories
     })
-# ================= CART =================
 from .models import Brand
 
 @login_required

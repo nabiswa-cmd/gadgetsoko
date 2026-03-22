@@ -22,7 +22,8 @@ urlpatterns = [
     path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
 
     path('check/', views.check, name='check'),
-    path('brand/<str:brand_name>/', views.products_by_brand, name='products_by_brand'),
+    path('brand/<int:brand_id>/', views.products_by_brand, name='products_by_brand'),
+    
 
     # Auth routes
     path('userlog/', views.userlog_view, name='userlog'),

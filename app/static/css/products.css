@@ -89,7 +89,7 @@ button {
 .menu {
     display: flex;
     /* Automatically creates as many columns as fit (min 100px wide) */
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(autsso-fill, minmax(100px, 1fr));
     gap: 8px;
     width: 100%;
 }
