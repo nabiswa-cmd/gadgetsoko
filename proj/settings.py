@@ -1,3 +1,12 @@
+from dotenv import load_dotenv
+from pathlib import Path
+import os
+
+# ✅ FIRST define BASE_DIR
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ✅ THEN load .env
+load_dotenv()
 """
 Django settings for proj project.
 
@@ -10,7 +19,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from pathlib import Path
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -59,13 +68,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'proj.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             BASE_DIR / "templates",   # your main site templates
-            BASE_DIR / "app" / "templates1",  # <-- admin custlomasitionmns
+            BASE_DIR / "app" / "templates1",  # admin custom templates
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -73,6 +81,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+                # ✅ ADD YOUR CUSTOM CONTEXT PROCESSOR HERE
+                'app.context_processors.cart_count',
             ],
         },
     },
@@ -148,12 +159,12 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # M-Pesa Sandbox
-MPESA_CONSUMER_KEY = '5lXZ1ANcKGrZ3JqSSXznuq9kMwUWUIQlrvHTFXu1RDEKky5h'
-MPESA_CONSUMER_SECRET = 'upYsqpwAuLIX0jJQUYDGk7GjGp0Kl35no2IUnWuZWTlUA4HMW8DAgZdG0SuRicFA'
-MPESA_SHORTCODE = '174379'
-MPESA_PASSKEY = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
-MPESA_ENV = 'sandbox'  # 'sandbox' or 'production'
-MPESA_CALLBACK_URL = 'https://eloy-headstrong-eventfully.ngrok-free.dev/mpesa_callback/'  # We'll generate this later
+MPESA_CONSUMER_KEY =os.getenv("MPESA_CONSUMER_KEY")
+MPESA_CONSUMER_SECRET =os.getenv("MPESA_CONSUMER_SECRET")
+MPESA_SHORTCODE =os.getenv("MPESA_SHORTCODE")
+MPESA_PASSKEY =os.getenv("MPESA_PASSKEY")
+MPESA_ENV = os.getenv("MPESA_ENV")  # 'sandbox' or 'production'
+MPESA_CALLBACK_URL = os.getenv("MPESA_CALLBACK_URL")  # We'll generate this later
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

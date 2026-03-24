@@ -3,7 +3,8 @@
 <html>
 <head>
     <title>Products | Gadget Soko Kenya</title>
-    <link rel="stylesheet" href="{% static 'css/Products.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/products.css' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/logo-32x32.png' %}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -21,8 +22,9 @@
         </div>
     </div>
 
-    <!-- Navbar -->
+    <!-- NAVBAR (ONLY MAIN ITEMS) -->
     <div class="navbar">
+
         <!-- Logo -->
         <div class="logo">
             <a href="{% url 'index' %}">
@@ -30,167 +32,266 @@
             </a>
         </div>
 
-        <!-- Brand Images Strip -->
-        <div class="navbar-photos">
-            <img src="{% static 'images/photo1.png' %}" alt="Photo 1">
-            <img src="{% static 'images/photo2.png' %}" alt="Photo 2">
-            <img src="{% static 'images/photo3.png' %}" alt="Photo 3">
-            <img src="{% static 'images/photo4.png' %}" alt="Photo 4">
-        </div>
-
-        <nav class="menu">
-    <a href="{% url 'products' %}" class="brand-link active">All</a>
-
-    {% for brand in brands %}
-    <a href="{% url 'products_by_brand' brand.id %}" class="brand-link">
-        {{ brand.name }}
-    </a>
-{% endfor %}
-
-   
-</nav>
-
-
         <!-- Search -->
         <div class="search-box">
             <input type="text" id="liveSearchInput" placeholder="Search products...">
             <button>🔍</button>
-        </div>
 
-        <!-- Cart -->
-        <div class="cart" onclick="toggleCart()">
-            🛒 <span>{{ request.user.cartitem_set.count }}</span>
+            <!-- Live Results -->
+            <div id="search-results" class="search-dropdown"></div>
         </div>
+        <div class="cart" onclick="toggleCart()">
+    <i class="fa fa-shopping-cart"></i>
+    <sup class="cart-count">{{ cart_count }}</sup>
+</div>
+
     </div>
 </header>
 
-<!-- FLASHING/ROTATING BANNER -->
-<section class="banner">
-    <img id="bannerImage" src="{% static 'images/photo1.png' %}" alt="Banner">
-</section>
+<!-- ✅ BRAND GRID (NOW SEPARATE & CLEAN) -->
+<nav class="menu">
+    <a href="{% url 'products' %}" class="brand-link active">All</a>
 
-<!-- CATEGORY FILTER DROPDOWN -->
+    {% for brand in brands %}
+        <a href="{% url 'products_by_brand' brand.id %}" class="brand-link">
+            {{ brand.name }}
+        </a>
+    {% endfor %}
+</nav>
+
+<!-- FILTER -->
 <div class="filters">
     <form method="get">
         <select name="category" onchange="this.form.submit()">
             <option value="">All Categories</option>
             {% for cat in categories %}
-                <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>
+                <option value="{{ cat.id }}"
+                    {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>
                     {{ cat.name }}
                 </option>
             {% endfor %}
         </select>
     </form>
 </div>
-
-<!-- PRODUCTS GRID -->
+<!-- PRODUCTS -->
 <section class="product-grid">
     {% for product in products %}
     <div class="product-card">
-        {% if product.image %}
-        <img src="{{ product.image.url }}" alt="{{ product.name }}">
-        {% else %}
-        <img src="{% static 'images/default.png' %}" alt="No image">
-        {% endif %}
 
-        <h3>{{ product.name }}</h3>
+        <!-- IMAGE -->
+        <div class="img-container">
+            {% if product.images.first %}
+    <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+{% else %}
+    <img src="{% static 'images/default.png' %}" alt="No image">
+{% endif %}
 
+        </div>
+
+        <!-- NAME -->
+        <h3>{{ product.name|truncatewords:4 }}</h3>
+
+        <!-- BRAND -->
+        <p style="font-size:12px; color:#777;">
+            {{ product.brand.name }}
+        </p>
+
+        <!-- PRICE -->
         <div class="price">
             {% if product.discount > 0 %}
-            <span>KES {{ product.price }}</span>
-            <strong>KES {{ product.discounted_price }}</strong>
+                <span>KES {{ product.price }}</span>
+                <strong>KES {{ product.discounted_price }}</strong>
             {% else %}
-            <strong>KES {{ product.price }}</strong>
+                <strong>KES {{ product.price }}</strong>
             {% endif %}
         </div>
-
         <div class="product-actions">
-            <button onclick="addToWishlist({{ product.id }})">❤️ Wishlist</button>
-            <button onclick="openQuickView({{ product.id }})">⚡ Quick View</button>
-            <a href="{% url 'add_to_cart' product.id %}"><button>🛒 Add to Cart</button></a>
-            <a href="{% url 'product_detail' product.id %}"><button>View</button></a>
-        </div>
+    <a href="{% url 'product_detail' product.id %}" class="btn-view">
+        <i class="fa fa-eye"></i> View
+    </a>
+
+    <button class="btn-add" onclick="addToCart({{ product.id }})">
+        <i class="fa fa-shopping-cart"></i> Add
+    </button>
+</div>
+
     </div>
     {% empty %}
-    <p style="padding:20px;">No products available</p>
+        <p style="padding:20px;">
+            <strong>No products available 😥</strong>
+        </p>
     {% endfor %}
 </section>
 
-<!-- CONTACT -->
-<section id="contact" class="section">
-    <h2>Contact Us</h2>
-    <p>📞 0727698319</p>
-    <p>📧 support@gadgetsoko.co.ke</p>
-    <p>📍 Nairobi, Kenya</p>
-</section>
+<footer id="contact" class="footer">
 
-<!-- SLIDE-OUT CART -->
+    <div class="footer-container">
+
+        <!-- COLUMN 1 -->
+        <div class="footer-column">
+
+            <!-- ROW 1: SOCIALS -->
+            <div class="footer-row">
+                <h3>Socials</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#"><i class="fab fa-tiktok"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-telegram"></i></a>
+                </div>
+            </div>
+
+            <!-- ROW 2: CONTACTS -->
+            <div class="footer-row">
+                <h3>Contacts</h3>
+                <p>📞 0727698319</p>
+                <p>📧 support@gadgetsoko.co.ke</p>
+                <p>💬 WhatsApp: 0727698319</p>
+            </div>
+
+        </div>
+
+        <!-- COLUMN 2 -->
+        <div class="footer-column">
+
+            <!-- ROW: QUICK LINKS -->
+            <div class="footer-row">
+                <h3>Quick Links</h3>
+                <a href="{% url 'index' %}">Home</a>
+                <a href="{% url 'products' %}">Products</a>
+                <a href="#categories">Categories</a>
+                <a href="#services">Services</a>
+            </div>
+
+        </div>
+
+        <!-- COLUMN 3 -->
+        <div class="footer-column">
+
+            <!-- ROW: LOCATIONS -->
+            <div class="footer-row">
+                <h3>Locations</h3>
+                <p>📍 Nairobi, Kenya</p>
+                <p>🚚 Delivery across Kenya</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- DEVELOPER ROW -->
+    <div class="footer-bottom">
+        <p>
+            Developed and Designed by <strong>Sammy Tings</strong> at 
+            <strong>TingsTech Technologies</strong>
+        </p>
+        <p>📞 0727698319 | 📧 sammytings@tingstech.com</p>
+    </div>
+
+</footer>
+
+<!-- CART SIDEBAR -->
 <div class="cart-sidebar" id="cartSidebar">
     <div class="cart-header">
         <h3>Your Cart</h3>
         <span class="close-cart" onclick="toggleCart()">×</span>
     </div>
-    <div class="cart-items" id="cartItems">
+
+    <div class="cart-items">
         {% for item in cart_items %}
         <div class="cart-item">
-            <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
+            <img src="{{ item.product.images.first.image.url }}" alt="">
             <div>{{ item.product.name }} x{{ item.quantity }}</div>
             <button onclick="removeFromCart({{ item.id }})">Remove</button>
         </div>
         {% endfor %}
     </div>
+
     <div class="cart-footer">
         <strong>Total: KES {{ cart_total }}</strong>
         <button class="checkout-btn">Checkout</button>
     </div>
 </div>
+{% if messages %}
+<div id="cart-popup" class="popup">
+    <div class="popup-content">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+        <button onclick="closePopup()">OK</button>
+    </div>
+</div>
 
+<script>
+function closePopup() {
+    document.getElementById("cart-popup").style.display = "none";
+}
+</script>
+{% endif %}
 <!-- SCRIPTS -->
 <script>
 function toggleCart() {
     document.getElementById('cartSidebar').classList.toggle('active');
 }
-function removeFromCart(itemId) {
-    // AJAX POST to remove item from cart
-}
 
-
-
-/* Banner rotation */
-const banner = document.getElementById("bannerImage");
-const rotatingPhotos = [
-"{% static 'images/f.png' %}",
-"{% static 'images/photo1.png' %}",
-"{% static 'images/photo2.png' %}",
-"{% static 'images/repl.png' %}"
-];
-let currentIndex = 0;
-setInterval(()=>{
-currentIndex = (currentIndex + 1) % rotatingPhotos.length;
-banner.src = rotatingPhotos[currentIndex];
-},3500);
-
-let currentIndex = 0;
-setInterval(()=>{
-    currentIndex = (currentIndex + 1) % rotatingPhotos.length;
-    banner.src = rotatingPhotos[currentIndex];
-}, 3000);
 
 /* Live Search */
 $('#liveSearchInput').on('keyup', function(){
     let query = $(this).val();
+
+    if(query.length < 2){
+        $('#search-results').hide();
+        return;
+    }
+
     $.ajax({
         url: "{% url 'live_search' %}",
         data: {'q': query},
         success: function(data){
-            $('.product-grid').html(data.html);
+            $('#search-results').html(data.html).show();
         }
     });
 });
+</script>
 
-/* Wishlist & Quick View placeholders */
-function addToWishlist(id){ alert("Added product "+id+" to wishlist!"); }
-function openQuickView(id){ alert("Quick view for product "+id); }
+<script>
+function closePopup() {
+    document.getElementById("cart-popup").style.display = "none";
+}
+</script>
+{% if messages %}
+<div id="cart-popup" class="popup">
+    <div class="popup-content">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+        <button onclick="closePopup()">OK</button>
+    </div>
+</div>
+
+<script>
+function closePopup() {
+    document.getElementById("cart-popup").style.display = "none";
+}
+</script>
+{% endif %}
+<script>
+function addToCart(productId) {
+    $.ajax({
+        url: `/add-to-cart/${productId}/`,
+        type: "GET",
+        success: function(response) {
+
+            // ✅ Update cart count (icon)
+            document.querySelectorAll('.cart-count').forEach(el => {
+                el.innerText = response.cart_count;
+            });
+
+            // Optional message
+            alert(response.product_name + " added to cart ✅");
+        }
+    });
+}
 </script>
 
 </body>

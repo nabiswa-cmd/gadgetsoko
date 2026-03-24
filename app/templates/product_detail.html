@@ -2,25 +2,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>Login | Gadget Soko Kenya</title>
-
-<link rel="stylesheet" href="{% static 'css/login.css' %}">
-
+    <title>{{ product.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/productdetail.css' %}">
 </head>
-
 <body>
-    <h2>{{ product.name }}</h2>
 
-<img src="{{ product.image.url }}" width="300">
+<div class="section">
 
-<p>Price: KES {{ product.price }}</p>
-<p>Views: {{ product.views }}</p>
+    <div class="product-detail">
 
-<a href="{% url 'add_to_cart' product.id %}">
-    <button>Add to Cart</button>
-</a>
+        <!-- MAIN IMAGE -->
+        <div class="product-images">
+            <img id="mainImage" src="{{ product.image.url }}" alt="{{ product.name }}">
+            
+            <!-- EXTRA IMAGES -->
+            <div class="thumbnail-container">
+                {% for img in product.images.all %}
+                    <img src="{{ img.image.url }}" onclick="changeImage(this)">
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- PRODUCT INFO -->
+        <div class="product-info">
+            <h1>{{ product.name }}</h1>
+
+            <p><strong>Brand:</strong> {{ product.brand.name }}</p>
+
+            <p class="price">
+                KES {{ product.discounted_price }}
+            </p>
+
+            <h3>Specifications</h3>
+            <p>{{ product.specifications }}</p>
+
+            <a href="{% url 'add_to_cart' product.id %}">
+                <button class="checkout-btn">Add to Cart</button>
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function changeImage(el) {
+    document.getElementById("mainImage").src = el.src;
+}
+</script>
+
 </body>
 </html>
-
-    

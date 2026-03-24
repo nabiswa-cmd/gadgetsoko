@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body {
             margin: 0;
@@ -22,13 +24,9 @@
             align-items: center;
         }
 
-        .navbar h2 { margin: 0; }
-        .navbar .user { font-size: 16px; }
-
-        /* SIDEBAR */
         .sidebar {
             width: 220px;
-            height: 100vh;
+            min-height: 100vh;
             background: #111;
             position: fixed;
             color: white;
@@ -47,20 +45,19 @@
             padding: 15px;
             color: #ccc;
             text-decoration: none;
+            cursor: pointer;
         }
 
-        .sidebar a:hover {
+        .sidebar a:hover, .sidebar a.active {
             background: #ff5a2c;
             color: white;
         }
 
-        /* MAIN */
         .main {
             margin-left: 220px;
             padding: 20px;
         }
 
-        /* CARDS */
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -82,13 +79,16 @@
             color: #ff5a2c;
         }
 
-        /* TABLE */
-        table {
-            width: 100%;
+        .table-container {
             background: white;
-            margin-top: 10px;
             border-radius: 10px;
             overflow: hidden;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
         table th, table td {
@@ -101,20 +101,47 @@
             color: white;
         }
 
-        /* BUTTON */
-        .btn {
-            padding: 8px 12px;
+        table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        h2 {
+            margin-top: 30px;
+        }
+
+        .charts, .settings-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            display: none; /* initially hidden */
+            margin-top: 20px;
+        }
+
+        .charts.active, .settings-panel.active {
+            display: block;
+        }
+
+        canvas {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .settings-panel button {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
             border: none;
             background: #ff5a2c;
             color: white;
             border-radius: 5px;
             cursor: pointer;
+            width: 200px;
         }
 
-        .btn:hover {
+        .settings-panel button:hover {
             opacity: 0.9;
         }
-
     </style>
 </head>
 <body>
@@ -130,93 +157,161 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
     <h3>Dashboard</h3>
-    <a href="{% url 'dashboard' %}"><i class="fa fa-chart-line"></i> Overview</a>
-    <a href="{% url 'add_product' %}"><i class="fa fa-plus"></i> Add Product</a>
-    <a href="{% url 'manage_products' %}"><i class="fa fa-box"></i> Products</a>
-    <a href="{% url 'manage_orders' %}"><i class="fa fa-shopping-cart"></i> Orders</a>
-    <a href="{% url 'customers' %}"><i class="fa fa-users"></i> Customers</a>
+    <a onclick="showSection('overview')" class="active"><i class="fa fa-chart-line"></i> Overview</a>
+    <a href="{% url 'manage_orders' %}">
+    <i class="fa fa-shopping-cart"></i> Orders
+</a>
+
+<a href="{% url 'manage_products' %}">
+    <i class="fa fa-box"></i> Products
+</a>
+
+<a href="{% url 'customers' %}">
+    <i class="fa fa-users"></i> Customers
+</a>
+<a href="{% url 'add_product' %}">
+    <i class="fa fa-add"></i> Add products
+</a>
+
+
+    <a onclick="showSection('analytics')"><i class="fa fa-chart-bar"></i> Analytics</a>
+    <a onclick="showSection('settings')"><i class="fa fa-cog"></i> Settings</a>
     <a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Logout</a>
 </div>
 
-<!-- MAIN CONTENT -->
+<!-- MAIN -->
 <div class="main">
 
-    <!-- CARDS -->
-    <div class="cards">
-        <div class="card">
-            <i class="fa fa-box"></i>
-            <h3>{{ products|default:"0" }}</h3>
-            <p>Total Products</p>
+    <!-- OVERVIEW CARDS -->
+    <div id="overview" class="section active">
+        <div class="cards">
+            <div class="card">
+                <i class="fa fa-box"></i>
+                <h3>{{ products_count|default:"0" }}</h3>
+                <p>Total Products</p>
+            </div>
+            <div class="card">
+                <i class="fa fa-shopping-cart"></i>
+                <h3>{{ orders_count|default:"0" }}</h3>
+                <p>Total Orders</p>
+            </div>
+            <div class="card">
+                <i class="fa fa-users"></i>
+                <h3>{{ users_count|default:"0" }}</h3>
+                <p>Customers</p>
+            </div>
+            <div class="card">
+                <i class="fa fa-money-bill"></i>
+                <h3>KES {{ revenue|default:"0" }}</h3>
+                <p>Revenue</p>
+            </div>
         </div>
 
-        <div class="card">
-            <i class="fa fa-shopping-cart"></i>
-            <h3>{{ orders|default:"0" }}</h3>
-            <p>Total Orders</p>
-        </div>
-
-        <div class="card">
-            <i class="fa fa-users"></i>
-            <h3>{{ users|default:"0" }}</h3>
-            <p>Customers</p>
-        </div>
-
-        <div class="card">
-            <i class="fa fa-money-bill"></i>
-            <h3>KES {{ revenue|default:"0" }}</h3>
-            <p>Revenue</p>
+        <!-- RECENT ORDERS -->
+        <h2>Recent Orders</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent_orders %}
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>{{ order.id }}</td>
+                            <td>{{ order.name|default:"N/A" }}</td>
+                            <td>{{ order.phone|default:"N/A" }}</td>
+                            <td>KES {{ order.total|default:"0" }}</td>
+                            <td>{{ order.status|default:"Pending" }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align:center;">No recent orders</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- RECENT ORDERS -->
-    <h2>Recent Orders</h2>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Total</th>
-            <th>Status</th>
-        </tr>
-        {% if recent_orders %}
-            {% for order in recent_orders %}
-                <tr>
-                    <td>{{ order.id }}</td>
-                    <td>{{ order.name|default:"N/A" }}</td>
-                    <td>{{ order.phone|default:"N/A" }}</td>
-                    <td>KES {{ order.total|default:"0" }}</td>
-                    <td>{{ order.status|default:"Pending" }}</td>
-                </tr>
-            {% endfor %}
-        {% else %}
-            <tr>
-                <td colspan="5" style="text-align:center;">No recent orders</td>
-            </tr>
-        {% endif %}
-    </table>
+    <!-- ANALYTICS SECTION -->
+    <div id="analytics" class="charts">
+        <h2>Revenue Chart</h2>
+        <canvas id="revenueChart"></canvas>
 
-    <!-- TOP PRODUCTS -->
-    <h2>Most Viewed Products</h2>
-    <table>
-        <tr>
-            <th>Product</th>
-            <th>Views</th>
-        </tr>
-        {% if top_products %}
-            {% for product in top_products %}
-                <tr>
-                    <td>{{ product.name|default:"N/A" }}</td>
-                    <td>{{ product.views|default:"0" }}</td>
-                </tr>
-            {% endfor %}
-        {% else %}
-            <tr>
-                <td colspan="2" style="text-align:center;">No products available</td>
-            </tr>
-        {% endif %}
-    </table>
+        <h2>Top Products Chart</h2>
+        <canvas id="topProductsChart"></canvas>
+    </div>
+
+    <!-- SETTINGS SECTION -->
+    <div id="settings" class="settings-panel">
+        <h2>Admin Settings</h2>
+        <button onclick="window.location.href='{% url 'change_password' %}'"><i class="fa fa-key"></i> Change Password</button>
+        <button onclick="window.location.href='{% url 'add_admin' %}'"><i class="fa fa-user-plus"></i> Add Admin</button>
+        <button onclick="window.location.href='{% url 'manage_orders' %}'"><i class="fa fa-trash"></i> Delete Orders</button>
+    </div>
 
 </div>
+
+<!-- JAVASCRIPT TO SWITCH SECTIONS -->
+<script>
+    function showSection(section) {
+        // Remove 'active' class from all sidebar links
+        document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+        // Add 'active' to clicked link
+        event.target.closest('a').classList.add('active');
+
+        // Hide all sections
+        document.querySelectorAll('.section, .charts, .settings-panel').forEach(el => el.classList.remove('active'));
+        // Show selected section
+        if(section === 'overview') document.getElementById('overview').classList.add('active');
+        if(section === 'analytics') document.getElementById('analytics').classList.add('active');
+        if(section === 'settings') document.getElementById('settings').classList.add('active');
+    }
+
+    // REVENUE CHART
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: {{ revenue_labels|safe }},
+            datasets: [{
+                label: 'Revenue (KES)',
+                data: {{ revenue_values|safe }},
+                backgroundColor: 'rgba(255,90,44,0.2)',
+                borderColor: 'rgba(255,90,44,1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: true } } }
+    });
+
+    // TOP PRODUCTS CHART
+    const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+    const topProductsChart = new Chart(topProductsCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ top_products_labels|safe }},
+            datasets: [{
+                label: 'Total Sold',
+                data: {{ top_products_values|safe }},
+                backgroundColor: 'rgba(255,90,44,0.7)',
+                borderColor: 'rgba(255,90,44,1)',
+                borderWidth: 1
+            }]
+        },
+        options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
+</script>
 
 </body>
 </html>

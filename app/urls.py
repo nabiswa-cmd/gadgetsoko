@@ -15,10 +15,10 @@ urlpatterns = [
     path('products/', views.products_view, name='products'),
     path('products/<int:pk>/', views.product_detail, name='product_detail'),
     path('cart/', views.view_cart, name='view_cart'),                       
-    path('brand/<str:brand_name>/', views.products_by_brand, name='products_by_brand'),
+   
 
     
-    path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    
     path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
 
     path('check/', views.check, name='check'),
@@ -31,6 +31,7 @@ urlpatterns = [
     path('signup/', views.signup_view, name='signup'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
 
     # Dashboard
     path('dashboard/', views.dashboard_view, name='dashboard'),
@@ -53,4 +54,6 @@ urlpatterns = [
     # Allauth / Google login
     path('accounts/', include('allauth.urls')),
     path('live-search/', views.live_search, name='live_search'),
+    path('change-password/', views.change_password_view, name='change_password'), 
+    path('add_admin/',views.add_admin_view,name="add_admin")
 ]
