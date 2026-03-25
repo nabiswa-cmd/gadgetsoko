@@ -1,177 +1,195 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Checkout | Gadget Soko Kenya</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Gadget Soko Kenya</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root { --primary: #0f4c81; --mpesa: #00a650; --bg: #f8f9fa; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; margin: 0; }
+        
+        .checkout-wrapper { width: 95%; max-width: 1100px; margin: 30px auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        
+        /* Location Toggle */
+        .location-picker { display: flex; gap: 10px; margin-bottom: 25px; background: #eee; padding: 5px; border-radius: 8px; }
+        .loc-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .loc-btn.active { background: var(--primary); color: white; }
 
-<link rel="stylesheet" href="{% static 'css/index.css' %}">
+        /* Form Controls */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #444; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        
+        /* Payment Grid */
+        .payment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 10px; }
+        .pay-opt { border: 2px solid #eee; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; position: relative; transition: 0.2s; }
+        .pay-opt input { position: absolute; opacity: 0; }
+        .pay-opt img { height: 30px; display: block; margin: 0 auto 8px; }
+        .pay-opt.selected { border-color: var(--primary); background: #f0f7ff; }
+        
+        /* Summary */
+        .summary-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .total-price { font-size: 22px; font-weight: bold; color: var(--primary); margin-top: 15px; }
+        .btn-submit { background: var(--primary); color: white; border: none; width: 100%; padding: 16px; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
-<style>
-/* Container */
-.checkout-container{
-    width:90%;
-    max-width:1000px;
-    margin:40px auto;
-    background:white;
-    padding:30px 40px;
-    border-radius:8px;
-    box-shadow:0 2px 12px rgba(0,0,0,0.1);
-}
-
-/* Cart Items */
-.cart-item{
-    display:flex;
-    justify-content:space-between;
-    border-bottom:1px solid #eee;
-    padding:12px 0;
-    font-size:16px;
-}
-
-/* Total */
-.total{
-    font-size:22px;
-    font-weight:bold;
-    margin-top:20px;
-    text-align:right;
-    color:#0f4c81;
-}
-
-/* Form Inputs */
-form h3{
-    margin-top:30px;
-    color:#0f4c81;
-}
-
-input, textarea, select{
-    width:100%;
-    padding:10px;
-    margin:8px 0 15px 0;
-    border:1px solid #ccc;
-    border-radius:4px;
-    font-size:14px;
-}
-
-button{
-    background:#0f4c81;
-    color:white;
-    border:none;
-    padding:12px;
-    font-size:16px;
-    cursor:pointer;
-    border-radius:4px;
-    width:100%;
-}
-
-button:hover{
-    background:#08345a;
-}
-
-/* Payment Options */
-.payment-options{
-    display:flex;
-    gap:20px;
-    margin-bottom:15px;
-}
-
-.payment-options label{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    cursor:pointer;
-}
-</style>
+        #pod-option { display: none; } /* Hidden by default until Nairobi is picked */
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="header">
-    <div class="topbar">
-        <div>Language</div>
-        <div>
-            <a href="{% url 'login' %}">Login</a> |
-            <a href="#contact">Contact</a>
+<div class="checkout-wrapper">
+    
+    <div class="card">
+        <h2>Complete Your Order</h2>
+        
+        <label>Where are you located?</label>
+        <div class="location-picker">
+            <button type="button" class="loc-btn active" id="btn-nairobi" onclick="setLocation('nairobi')">Inside Nairobi</button>
+            <button type="button" class="loc-btn" id="btn-outside" onclick="setLocation('outside')">Outside Nairobi</button>
+        </div>
+
+        <form method="POST" action="{% url 'check' %}">
+            {% csrf_token %}
+            <input type="hidden" name="region" id="region-input" value="nairobi">
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="name" required>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>Phone (M-Pesa)</label>
+                    <input type="text" name="phone" placeholder="0712345678" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required>
+                </div>
+            </div>
+
+            <div class="form-group" id="nairobi-selects">
+                <label>Nairobi Estate / Area</label>
+                <select name="nairobi_area">
+                    <option value="CBD">CBD / Town</option>
+                    <option value="Westlands">Westlands</option>
+                    <option value="Eastlands">Eastlands (Donholm, Buruburu, etc)</option>
+                    <option value="Roysambu">Roysambu / Kasarani</option>
+                    <option value="Langata">Langata / Karen</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="outside-selects">
+                <label>Major Town (Outside Nairobi)</label>
+                <input type="text" name="outside_town" placeholder="e.g. Mombasa, Kisumu, Nakuru, Eldoret">
+                <p style="font-size: 11px; color: #888; margin-top: 5px;">* Orders outside Nairobi are shipped via G4S or Wells Fargo.</p>
+            </div>
+
+            <div class="form-group">
+                <label>Specific Delivery Address</label>
+                <textarea name="address" rows="2" placeholder="House No, Office Floor, Street Name..." required></textarea>
+            </div>
+
+            <h3>Payment Method</h3>
+            <div class="payment-grid">
+                <label class="pay-opt selected" onclick="selectPay(this)">
+                    <input type="radio" name="payment_method" value="mpesa" checked>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/1200px-M-PESA_LOGO-01.svg.png">
+                    <span>M-Pesa</span>
+                </label>
+                <label class="pay-opt" onclick="selectPay(this)">
+                    <input type="radio" name="payment_method" value="equity">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/3a/Equity_Bank_Logo.svg/1200px-Equity_Bank_Logo.svg.png">
+                    <span>Equity</span>
+                </label>
+                <label class="pay-opt" onclick="selectPay(this)">
+                    <input type="radio" name="payment_method" value="pochi">
+                    <img src="https://www.safaricom.co.ke/personal/m-pesa/m-pesa-for-business/pochi-la-biashara/images/pochi-logo.png">
+                    <span>Pochi</span>
+                </label>
+                <label class="pay-opt" id="pod-option" onclick="selectPay(this)">
+                    <input type="radio" name="payment_method" value="pod">
+                    <i class="fa fa-truck" style="font-size: 24px; color: var(--primary); display: block; margin-bottom: 5px;"></i>
+                    <span>Pay on Delivery</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit">Confirm & Place Order</button>
+        </form>
+    </div>
+
+    <div class="card" style="height: fit-content;">
+        <h3>Order Summary</h3>
+        {% for item in cart_items %}
+        <div class="summary-row">
+            <span>{{ item.product.name }} (x{{ item.quantity }})</span>
+            <strong>KES {{ item.get_total }}</strong>
+        </div>
+        {% endfor %}
+        <div class="summary-row">
+            <span>Delivery Fee</span>
+            <strong id="shipping-fee" style="color: var(--mpesa);">FREE</strong>
+        </div>
+        <div class="total-price summary-row">
+            <span>Total</span>
+            <span id="grand-total">KES {{ cart_total }}</span>
         </div>
     </div>
-    <div class="navbar">
-        <div class="logo">
-            <a href="{% url 'index' %}"><img src="{% static 'images/logo.png' %}"></a>
-        </div>
-        <nav class="menu">
-            <a href="{% url 'index' %}">Home</a>
-            <a href="{% url 'products' %}">Products</a>
-            <a href="#services">Services</a>
-            <a href="#contact">Contact</a>
-        </nav>
-        <div class="cart">
-            <a href="{% url 'view_cart' %}">🛒</a>
-        </div>
-    </div>
-</header>
-
-<!-- CHECKOUT -->
-<div class="checkout-container">
-
-<h2>Checkout</h2>
-
-<div id="cartItems"></div>
-
-<div class="total">
-Total: KSh <span id="cartTotal">0</span>
 </div>
-
-<form method="POST">
-    {% csrf_token %}
-    <input type="hidden" name="items" id="itemsInput">
-    <input type="hidden" name="total" id="totalInput">
-
-    <h3>Customer Details</h3>
-    <input type="text" name="name" placeholder="Full Name" required>
-    <input type="email" name="email" placeholder="Email Address" required>
-    <input type="text" name="phone" placeholder="Phone Number" required>
-    <textarea name="address" placeholder="Delivery Address" required></textarea>
-
-    <h3>Payment Method</h3>
-    <div class="payment-options">
-        <label><input type="radio" name="payment_method" value="card" disabled> Card (coming soon)</label>
-        <label><input type="radio" name="payment_method" value="mpesa" checked> M-Pesa</label>
-        <label><input type="radio" name="payment_method" value="paypal" disabled> PayPal (coming soon)</label>
-    </div>
-
-    <button type="submit">Place Order & Pay via M-Pesa</button>
-</form>
-
-</div>
-{% for item in cart_items %}
-<div class="cart-item">
-    <span>{{ item.product.name }}</span>
-    <span>KES {{ item.product.price }}</span>
-</div>
-{% endfor %}
 
 <script>
-// Load cart from localStorage
+    const baseTotal = parseInt("{{ cart_total }}");
 
-let cartItems = document.getElementById("cartItems");
-let total = 0;
+    function setLocation(loc) {
+        const nairobiSection = document.getElementById('nairobi-selects');
+        const outsideSection = document.getElementById('outside-selects');
+        const podOption = document.getElementById('pod-option');
+        const shippingFee = document.getElementById('shipping-fee');
+        const grandTotal = document.getElementById('grand-total');
+        const regionInput = document.getElementById('region-input');
 
-// Display cart items
-cart.forEach(item => {
-    total += parseFloat(item.price);
-    cartItems.innerHTML += `
-    <div class="cart-item">
-        <span>${item.name}</span>
-        <span>KSh ${item.price}</span>
-    </div>
-    `;
-});
+        // Reset Buttons
+        document.getElementById('btn-nairobi').classList.remove('active');
+        document.getElementById('btn-outside').classList.remove('active');
 
-// Set total and form hidden inputs
-document.getElementById("cartTotal").innerText = total;
-document.getElementById("itemsInput").value = JSON.stringify(cart);
-document.getElementById("totalInput").value = total;
+        if(loc === 'nairobi') {
+            document.getElementById('btn-nairobi').classList.add('active');
+            nairobiSection.classList.remove('hidden');
+            outsideSection.classList.add('hidden');
+            podOption.style.display = 'block'; // Show Pay on Delivery
+            shippingFee.innerText = "FREE";
+            grandTotal.innerText = "KES " + baseTotal;
+            regionInput.value = "nairobi";
+        } else {
+            document.getElementById('btn-outside').classList.add('active');
+            nairobiSection.classList.add('hidden');
+            outsideSection.classList.remove('hidden');
+            podOption.style.display = 'none'; // Hide Pay on Delivery
+            
+            // Auto-deselect POD if it was selected
+            if(document.querySelector('input[name="payment_method"]:checked').value === 'pod') {
+                document.querySelector('input[value="mpesa"]').checked = true;
+                selectPay(document.querySelector('.pay-opt')); // visual reset
+            }
+
+            shippingFee.innerText = "KES 300"; // Example fee for G4S
+            grandTotal.innerText = "KES " + (baseTotal + 300);
+            regionInput.value = "outside";
+        }
+    }
+
+    function selectPay(el) {
+        document.querySelectorAll('.pay-opt').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+        el.querySelector('input').checked = true;
+    }
+
+    // Initial check for Nairobi
+    window.onload = () => setLocation('nairobi');
 </script>
 
 </body>
