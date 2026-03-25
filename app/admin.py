@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, Order, OrderItem, CartItem
+from .models import Category, Product, ProductImage, Order, OrderItem, CartItem,ProductView
 from .models import Brand
 
 admin.site.register(Brand)
@@ -53,3 +53,14 @@ class OrderItemAdmin(admin.ModelAdmin):
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ('user', 'product', 'quantity', 'added_at')
     list_filter = ('user', 'product')
+
+@admin.register(ProductView)
+class ProductViewAdmin(admin.ModelAdmin):
+    # This lets you see the Gmail, Product Name, and Time at a glance
+    list_display = ('user_email', 'product', 'viewed_at')
+    list_filter = ('viewed_at', 'product')
+    search_fields = ('user__email', 'product__name')
+
+    def user_email(self, obj):
+        return obj.user.email
+    user_email.short_description = 'Customer Gmail'

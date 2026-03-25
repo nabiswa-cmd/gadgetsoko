@@ -154,59 +154,93 @@
     </div>
 </div>
 
-<!-- SIDEBAR -->
+
 <div class="sidebar">
     <h3>Dashboard</h3>
     <a onclick="showSection('overview')" class="active"><i class="fa fa-chart-line"></i> Overview</a>
-    <a href="{% url 'manage_orders' %}">
-    <i class="fa fa-shopping-cart"></i> Orders
-</a>
+    
+    <a onclick="showSection('activity')">
+        <i class="fa fa-eye"></i> Customer Activity
+    </a>
 
-<a href="{% url 'manage_products' %}">
-    <i class="fa fa-box"></i> Products
-</a>
-
-<a href="{% url 'customers' %}">
-    <i class="fa fa-users"></i> Customers
-</a>
-<a href="{% url 'add_product' %}">
-    <i class="fa fa-add"></i> Add products
-</a>
-
+    <a href="{% url 'manage_orders' %}"><i class="fa fa-shopping-cart"></i> Orders</a>
+    <a href="{% url 'manage_products' %}"><i class="fa fa-box"></i> Products</a>
+    <a href="{% url 'customers' %}"><i class="fa fa-users"></i> Customers</a>
+    <a href="{% url 'add_product' %}"><i class="fa fa-plus-circle"></i> Add Products</a>
 
     <a onclick="showSection('analytics')"><i class="fa fa-chart-bar"></i> Analytics</a>
     <a onclick="showSection('settings')"><i class="fa fa-cog"></i> Settings</a>
     <a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Logout</a>
 </div>
 
-<!-- MAIN -->
 <div class="main">
 
-    <!-- OVERVIEW CARDS -->
     <div id="overview" class="section active">
-        <div class="cards">
-            <div class="card">
-                <i class="fa fa-box"></i>
-                <h3>{{ products_count|default:"0" }}</h3>
-                <p>Total Products</p>
-            </div>
-            <div class="card">
-                <i class="fa fa-shopping-cart"></i>
-                <h3>{{ orders_count|default:"0" }}</h3>
-                <p>Total Orders</p>
-            </div>
-            <div class="card">
-                <i class="fa fa-users"></i>
-                <h3>{{ users_count|default:"0" }}</h3>
-                <p>Customers</p>
-            </div>
-            <div class="card">
-                <i class="fa fa-money-bill"></i>
-                <h3>KES {{ revenue|default:"0" }}</h3>
-                <p>Revenue</p>
-            </div>
         </div>
 
+    <div id="activity" class="section" style="display:none;">
+        <h2>Live Customer Tracking</h2>
+        <p style="color: #666;">Track Gmail users, viewed products, and M-Pesa progress.</p>
+        
+        <div class="table-container">
+            <table id="activityTable">
+                <thead>
+                    <tr>
+                        <th>Customer Gmail</th>
+                        <th>Action</th>
+                        <th>Product</th>
+                        <th>Time</th>
+                        <th>Details</th>
+                        <th>Action</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in customer_activity %}
+<tr>
+    <td><strong>{{ log.user.email }}</strong></td>
+
+    <td>
+        {% if log.action == 'LOGIN' %}
+            <span style="color: blue;"><i class="fa fa-sign-in"></i> Login</span>
+        {% elif log.action == 'VIEW' %}
+            <span style="color: #555;"><i class="fa fa-eye"></i> Viewed</span>
+        {% elif log.action == 'CART' %}
+            <span style="color: orange;"><i class="fa fa-cart-plus"></i> Cart</span>
+        {% elif log.action == 'CHECKOUT' %}
+            <span style="color: purple;"><i class="fa fa-credit-card"></i> Checkout</span>
+        {% elif log.action == 'PAYMENT' %}
+            <span style="color: green;"><i class="fa fa-money-bill"></i> Payment</span>
+        {% endif %}
+    </td>
+
+    <td>{{ log.product.name|default:"-" }}</td>
+
+    <td>{{ log.timestamp|timesince }} ago</td>
+
+    <td>{{ log.extra_info }}</td>
+
+    <td>
+        <a href="mailto:{{ log.user.email }}"
+           style="background:#ff5a2c; color:white; padding:5px 10px; border-radius:4px; text-decoration:none; font-size:12px;">
+           Contact
+        </a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6" style="text-align:center; padding:20px;">
+        No activity yet
+    </td>
+</tr>
+{% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    </div>
         <!-- RECENT ORDERS -->
         <h2>Recent Orders</h2>
         <div class="table-container">
@@ -263,18 +297,24 @@
 <!-- JAVASCRIPT TO SWITCH SECTIONS -->
 <script>
     function showSection(section) {
-        // Remove 'active' class from all sidebar links
-        document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-        // Add 'active' to clicked link
-        event.target.closest('a').classList.add('active');
+    // Remove active class from sidebar
+    document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+    if(event) event.target.closest('a').classList.add('active');
 
-        // Hide all sections
-        document.querySelectorAll('.section, .charts, .settings-panel').forEach(el => el.classList.remove('active'));
-        // Show selected section
-        if(section === 'overview') document.getElementById('overview').classList.add('active');
-        if(section === 'analytics') document.getElementById('analytics').classList.add('active');
-        if(section === 'settings') document.getElementById('settings').classList.add('active');
+    // Hide ALL sections
+    document.querySelectorAll('.section, .charts, .settings-panel').forEach(el => {
+        el.style.display = 'none';
+        el.classList.remove('active');
+    });
+
+    // Show selected
+    const selected = document.getElementById(section);
+    if(selected) {
+        selected.style.display = 'block';
+        selected.classList.add('active');
     }
+}
+    
 
     // REVENUE CHART
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');

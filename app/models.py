@@ -69,6 +69,15 @@ class Order(models.Model):
     status = models.CharField(max_length=50, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(max_length=50, default="Pending")
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('STK_Sent', 'STK Push Sent'), # User clicked pay, waiting for PIN
+        ('Paid', 'Paid'),             # Callback received Success
+        ('Failed', 'Failed'),         # Callback received Error or Timeout
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    checkout_request_id = models.CharField(max_length=100, blank=True, null=True)
+    mpesa_receipt = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return f'Order {self.id} - {self.name}'
@@ -88,3 +97,34 @@ class OrderItem(models.Model):
     def __str__(self):
         return f'{self.product.name} x {self.quantity}'
     
+# models.py
+from django.contrib.auth.models import User
+
+class ProductView(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='viewed_products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    viewed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-viewed_at']
+
+    def __str__(self):
+        return f"{self.user.email} viewed {self.product.name}"
+    
+class UserActivity(models.Model):
+    ACTION_CHOICES = [
+        ('LOGIN', 'Login'),
+        ('VIEW', 'Viewed Product'),
+        ('CART', 'Added to Cart'),
+        ('CHECKOUT', 'Checkout Attempt'),
+        ('PAYMENT', 'Payment Attempt'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    extra_info = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.action} - {self.timestamp}"

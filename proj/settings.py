@@ -165,6 +165,9 @@ MPESA_SHORTCODE =os.getenv("MPESA_SHORTCODE")
 MPESA_PASSKEY =os.getenv("MPESA_PASSKEY")
 MPESA_ENV = os.getenv("MPESA_ENV")  # 'sandbox' or 'production'
 MPESA_CALLBACK_URL = os.getenv("MPESA_CALLBACK_URL")  # We'll generate this later
+SITE_DOMAIN = os.getenv('SITE_DOMAIN', 'https://your-app-name.onrender.com')
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -173,3 +176,10 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sammytings2@gmail.com'
 EMAIL_HOST_PASSWORD = 'qlaj stnc oeyn hcvc'
 
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    }
+}

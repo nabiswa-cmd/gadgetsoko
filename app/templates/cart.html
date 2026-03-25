@@ -26,8 +26,9 @@
 
     {% for item in cart_items %}
         <div class="cart-item">
-            {% if item.product.image %}
-                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+            {% if item.product.images.first %}
+    <img src="{{ item.product.images.first.image.url }}">
+            
             {% else %}
                 <img src="{% static 'images/default.png' %}" alt="No image available">
             {% endif %}

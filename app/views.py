@@ -72,9 +72,10 @@ from django.http import JsonResponse
 @login_required
 @login_required
 def view_cart(request):
-    if request.GET.get('ajax'):
-        cart_items = CartItem.objects.filter(user=request.user)
+    cart_items = CartItem.objects.filter(user=request.user)
 
+    # AJAX REQUEST
+    if request.GET.get('ajax'):
         items = []
         total = 0
 
@@ -99,6 +100,15 @@ def view_cart(request):
             'total': total,
             'cart_count': sum(item.quantity for item in cart_items)
         })
+
+    # ✅ NORMAL PAGE (THIS WAS MISSING)
+    total = sum(item.quantity * item.product.discounted_price for item in cart_items)
+
+    return render(request, 'cart.html', {
+        'cart_items': cart_items,
+        'total': total
+    })
+
 from .models import Category
 
 def create_default_categories():
@@ -147,15 +157,31 @@ def customers(request):
     return render(request, 'customers.html', {
         'orders': orders
     })
-
+from .models import ProductView, UserActivity  # add this
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, id=pk)
+    
+    # Increment product views safely
     product.views += 1
-    product.save()
+    product.save(update_fields=['views'])
+
+    if request.user.is_authenticated:
+        # OLD SYSTEM (keep it)
+        ProductView.objects.create(
+            user=request.user,
+            product=product
+        )
+
+        # NEW SYSTEM (powerful tracking)
+        UserActivity.objects.create(
+            user=request.user,
+            action='VIEW',
+            product=product,
+            extra_info=f"Viewed {product.name}"
+        )
 
     return render(request, 'product_detail.html', {'product': product})
-
 def products_by_brand(request, brand_id):
     products = Product.objects.filter(brand__id=brand_id)
     brands = Brand.objects.all()
@@ -229,24 +255,56 @@ def add_product(request):
         "brands": brands  # ✅ CRITICAL
     })
 
+@login_required
+def increase_cart(request, item_id):
+    item = get_object_or_404(CartItem, id=item_id, user=request.user)
+    item.quantity += 1
+    item.save()
+    return JsonResponse({"status": "ok"})
 
 
 @login_required
-def remove_from_cart(request, item_id):
+def decrease_cart(request, item_id):
+    item = get_object_or_404(CartItem, id=item_id, user=request.user)
+    
+    if item.quantity > 1:
+        item.quantity -= 1
+        item.save()
+    else:
+        item.delete()
+
+    return JsonResponse({"status": "ok"})
+
+
+@login_required
+def remove_cart(request, item_id):
     item = get_object_or_404(CartItem, id=item_id, user=request.user)
     item.delete()
-    return redirect('view_cart')
+    return JsonResponse({"status": "ok"})
+
+from .models import UserActivity
 
 @login_required
+
 def check(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
     cart_items = CartItem.objects.filter(user=request.user)
     total = sum(item.quantity * item.product.discounted_price for item in cart_items)
 
     if request.method == "POST":
         name = request.POST.get("name")
-        email = request.POST.get("email")  # ✅ FIXED
+        email = request.POST.get("email")
         phone = request.POST.get("phone")
         address = request.POST.get("address")
+
+        # 🔥 TRACK CHECKOUT ATTEMPT
+        UserActivity.objects.create(
+            user=request.user,
+            action='CHECKOUT',
+            extra_info=f"Checkout started | Total: KES {total}"
+        )
 
         # CREATE ORDER
         order = Order.objects.create(
@@ -269,6 +327,13 @@ def check(request):
                 price=item.product.discounted_price
             )
 
+        # 🔥 TRACK PAYMENT ATTEMPT (before MPESA)
+        UserActivity.objects.create(
+            user=request.user,
+            action='PAYMENT',
+            extra_info=f"MPESA attempt | Order #{order.id} | KES {total}"
+        )
+
         # MPESA
         response = lipa_na_mpesa(
             phone_number=phone,
@@ -278,6 +343,20 @@ def check(request):
         )
 
         print("MPESA RESPONSE:", response)
+
+        # OPTIONAL: track success/failure
+        if response.get('ResponseCode') == '0':
+            UserActivity.objects.create(
+                user=request.user,
+                action='PAYMENT',
+                extra_info=f"STK Sent successfully | Order #{order.id}"
+            )
+        else:
+            UserActivity.objects.create(
+                user=request.user,
+                action='PAYMENT',
+                extra_info=f"STK Failed | Order #{order.id}"
+            )
 
         # CLEAR CART
         cart_items.delete()
@@ -291,8 +370,22 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from .models import Product, CartItem
 
-@login_required
+from django.db.models import Sum
+from .models import UserActivity  # 👈 add this
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.db.models import Sum
+from .models import Product, CartItem, UserActivity
+
 def add_to_cart(request, product_id):
+    # 🔐 HANDLE NOT LOGGED IN (AJAX SAFE)
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'login_required',
+            'message': 'Please login to add items to cart'
+        }, status=403)
+
     product = get_object_or_404(Product, id=product_id)
 
     cart_item, created = CartItem.objects.get_or_create(
@@ -303,6 +396,17 @@ def add_to_cart(request, product_id):
     if not created:
         cart_item.quantity += 1
         cart_item.save()
+        action_text = "Increased quantity"
+    else:
+        action_text = "Added to cart"
+
+    # 🔥 TRACK ACTIVITY
+    UserActivity.objects.create(
+        user=request.user,
+        action='CART',
+        product=product,
+        extra_info=f"{action_text}: {product.name} (Qty: {cart_item.quantity})"
+    )
 
     total = CartItem.objects.filter(user=request.user).aggregate(
         total=Sum('quantity')
@@ -312,6 +416,7 @@ def add_to_cart(request, product_id):
         'cart_count': total,
         'product_name': product.name
     })
+
 # ================= AUTH =================
 def signup_view(request):
     if request.method == 'POST':
@@ -422,6 +527,12 @@ from datetime import datetime
 from collections import defaultdict
 from .models import Product, Order, User
 
+from django.shortcuts import render
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Sum, Count
+from collections import defaultdict
+from datetime import datetime
+from .models import Product, Order, ProductView, User # Make sure all are imported
 
 @staff_member_required
 def dashboard_view(request):
@@ -434,22 +545,36 @@ def dashboard_view(request):
     # Recent orders
     recent_orders = Order.objects.order_by('-id')[:5]
 
+    # --- NEW: CUSTOMER ACTIVITY LOGS ---
+    # Fetch the last 15 product views, including the User and Product info
+    activity_logs = UserActivity.objects.select_related('user', 'product').order_by('-timestamp')[:20]
+
+    for log in activity_logs:
+        # For each log, find the most recent order by this specific user
+        # to see where their transaction currently stands
+        latest_order = Order.objects.filter(user=log.user).order_by('-created_at').first()
+        if latest_order:
+            log.last_order_status = latest_order.status
+        else:
+            log.last_order_status = "Browsing Only"
+    # ------------------------------------
+
     # Revenue per month (last 6 months)
     today = datetime.today()
     revenue_data = defaultdict(int)
     for i in range(6, 0, -1):
-        month_start = today.replace(day=1)  # first day of current month
-        month = (month_start.month - i) % 12 or 12
+        month = (today.month - i) % 12 or 12
         orders_in_month = Order.objects.filter(created_at__month=month)
-        revenue_data[datetime(1900, month, 1).strftime('%b')] = sum(o.total for o in orders_in_month)
+        month_name = datetime(1900, month, 1).strftime('%b')
+        revenue_data[month_name] = sum(o.total for o in orders_in_month if o.total)
 
     revenue_labels = list(revenue_data.keys())
     revenue_values = list(revenue_data.values())
 
     # Top products by total sold
     top_products = Product.objects.annotate(
-        total_sold=Sum('orderitem__quantity'),   # sum of all quantities sold
-        buyers_count=Count('orderitem__order', distinct=True)
+        total_sold=Sum('orderitem__quantity'),
+        # total_sold=Sum('items__quantity'), # Use 'items' if that is your related_name
     ).order_by('-total_sold')[:5]
 
     top_products_labels = [p.name for p in top_products]
@@ -465,6 +590,7 @@ def dashboard_view(request):
         "revenue_values": revenue_values,
         "top_products_labels": top_products_labels,
         "top_products_values": top_products_values,
+        "customer_activity": activity_logs, # New context for the table
         "products": Product.objects.all(),
     }
 
@@ -546,12 +672,46 @@ def lipa_na_mpesa(phone_number, amount, account_ref, transaction_desc):
             "response_text": response.text
         }
 # ================= CALLBACK =================
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+from .models import Order  # Adjust based on your model name
+
 @csrf_exempt
 def mpesa_callback(request):
-    data = json.loads(request.body)
-    print("MPESA CALLBACK:", data)
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        stk_callback = data['Body']['stkCallback']
+        result_code = stk_callback['ResultCode']
+        checkout_request_id = stk_callback['CheckoutRequestID']
 
-    return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        if result_code == 0:
+            # Payment Successful
+            # Metadata contains the M-Pesa Receipt Number and Phone
+            metadata = stk_callback['CallbackMetadata']['Item']
+            mpesa_receipt = next(item['Value'] for item in metadata if item['Name'] == 'MpesaReceiptNumber')
+            
+            # Find the order using the CheckoutID we saved during the push
+            try:
+                order = Order.objects.get(mpesa_checkout_id=checkout_request_id)
+                order.status = 'Paid'
+                order.mpesa_receipt = mpesa_receipt
+                order.save()
+            except Order.DoesNotExist:
+                pass 
+
+def initiate_payment(request, order_id):
+    order = Order.objects.get(id=order_id)
+    # Call your STK push utility
+    response = initiate_stk_push(order.phone, order.total_price, order.id)
+    
+    if response.get('ResponseCode') == '0':
+        # SAVE the CheckoutRequestID to the order
+        order.mpesa_checkout_id = response['CheckoutRequestID']
+        order.save()
+        return JsonResponse({'status': 'sent', 'message': 'Check your phone for the PIN prompt!'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Failed to trigger M-Pesa'})
 def register_mpesa_urls(request):
     access_token = get_mpesa_access_token()
 
