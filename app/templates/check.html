@@ -5,517 +5,161 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout | Gadget Soko Kenya</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+
 <style>
-:root {
-    --primary: #00c79c;
-    --primary-dark: #009e7c;
-    --danger: #ee4d2d;
-    --text: #1a1a2e;
-    --muted: #6b7280;
-    --bg: #f0faf7;
-    --white: #ffffff;
-    --border: #e5e7eb;
-    --shadow: 0 8px 30px rgba(0,0,0,0.08);
-    --radius: 14px;
+/* Container */
+.checkout-container{
+    width:90%;
+    max-width:1000px;
+    margin:40px auto;
+    background:white;
+    padding:30px 40px;
+    border-radius:8px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.1);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: var(--bg);
-    min-height: 100vh;
-    padding: 30px 20px;
-    color: var(--text);
+/* Cart Items */
+.cart-item{
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px solid #eee;
+    padding:12px 0;
+    font-size:16px;
 }
 
-.page-wrapper {
-    max-width: 960px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 24px;
-    align-items: start;
+/* Total */
+.total{
+    font-size:22px;
+    font-weight:bold;
+    margin-top:20px;
+    text-align:right;
+    color:#0f4c81;
 }
 
-@media (max-width: 768px) {
-    .page-wrapper { grid-template-columns: 1fr; }
+/* Form Inputs */
+form h3{
+    margin-top:30px;
+    color:#0f4c81;
 }
 
-.section-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 2rem;
-    margin-bottom: 20px;
+input, textarea, select{
+    width:100%;
+    padding:10px;
+    margin:8px 0 15px 0;
+    border:1px solid #ccc;
+    border-radius:4px;
+    font-size:14px;
 }
 
-.section-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 1.4rem;
-    padding-bottom: 0.7rem;
-    border-bottom: 2px solid var(--bg);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.section-title i { color: var(--primary); }
-
-.field-group { margin-bottom: 1rem; }
-.field-group label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+button{
+    background:#0f4c81;
+    color:white;
+    border:none;
+    padding:12px;
+    font-size:16px;
+    cursor:pointer;
+    border-radius:4px;
+    width:100%;
 }
 
-.field-input {
-    width: 100%;
-    padding: 11px 14px;
-    border: 1.5px solid var(--border);
-    border-radius: 9px;
-    font-family: inherit;
-    font-size: 0.9rem;
-    color: var(--text);
-    background: #fff;
-    transition: border-color 0.2s;
-    outline: none;
+button:hover{
+    background:#08345a;
 }
-.field-input:focus { border-color: var(--primary); }
-.field-input[readonly] {
-    background: var(--bg);
-    color: var(--muted);
-    cursor: not-allowed;
+
+/* Payment Options */
+.payment-options{
+    display:flex;
+    gap:20px;
+    margin-bottom:15px;
 }
-.field-input[readonly]:focus { border-color: var(--border); }
 
-select.field-input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
-
-.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-/* ORDER SUMMARY */
-.order-summary { position: sticky; top: 20px; }
-
-.product-line {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-}
-.product-line:last-child { border-bottom: none; }
-.product-line img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; background: var(--bg); }
-.product-line .info { flex: 1; }
-.product-line .info h4 { font-size: 0.875rem; font-weight: 600; }
-.product-line .info span { font-size: 0.78rem; color: var(--muted); }
-.product-line .price { font-weight: 700; font-size: 0.9rem; color: var(--primary-dark); }
-
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    font-size: 0.88rem;
-    color: var(--muted);
-}
-.summary-row.total {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text);
-    border-top: 2px solid var(--bg);
-    margin-top: 8px;
-    padding-top: 14px;
-}
-.summary-row.total span:last-child { color: var(--primary-dark); }
-
-.place-order-btn {
-    width: 100%;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 14px;
-    font-family: inherit;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 15px rgba(0,199,156,0.3);
-}
-.place-order-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,199,156,0.4); }
-
-/* ===== MPESA MODAL ===== */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-}
-.modal-overlay.active { display: flex; }
-
-.mpesa-modal {
-    background: var(--white);
-    border-radius: 20px;
-    padding: 2.5rem 2rem;
-    max-width: 380px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    position: relative;
-    animation: slideUp 0.35s ease;
-}
-@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-.mpesa-logo {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-}
-.mpesa-modal h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.3rem; }
-.mpesa-modal .sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
-.mpesa-amount { font-size: 2rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 1.5rem; }
-
-/* SPINNER STATES */
-#mpesa-state-waiting,
-#mpesa-state-success,
-#mpesa-state-stk {
-    display: none;
-}
-#mpesa-state-stk { display: block; }
-
-/* Circular spinner */
-.spinner-ring {
-    width: 90px; height: 90px;
-    border-radius: 50%;
-    border: 6px solid #e5e7eb;
-    border-top-color: var(--primary);
-    animation: spin 1s linear infinite;
-    margin: 1.2rem auto;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner-text { font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem; }
-
-/* Success tick */
-.success-circle {
-    width: 90px; height: 90px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #00c79c, #009e7c);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 1.2rem auto;
-    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 8px 25px rgba(0,199,156,0.4);
-}
-@keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.success-circle svg { width: 40px; height: 40px; stroke: white; stroke-width: 3; fill: none; stroke-dasharray: 60; stroke-dashoffset: 60; animation: drawCheck 0.5s 0.3s ease forwards; }
-@keyframes drawCheck { to { stroke-dashoffset: 0; } }
-.success-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem; }
-.success-sub { font-size: 0.82rem; color: var(--muted); }
-
-/* STK form */
-.stk-input-wrap { text-align: left; margin-bottom: 1rem; }
-.stk-input-wrap label { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px; }
-.stk-input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
-.stk-input:focus { border-color: var(--primary); }
-
-.btn-confirm {
-    width: 100%;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 13px;
-    font-family: inherit;
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.2s;
-    box-shadow: 0 4px 15px rgba(0,199,156,0.3);
-}
-.btn-confirm:hover { transform: translateY(-2px); }
-.btn-cancel { background: none; border: none; color: var(--muted); font-size: 0.82rem; cursor: pointer; margin-top: 10px; font-family: inherit; }
-.btn-cancel:hover { color: var(--text); }
-
-/* phone hint */
-.phone-hint { font-size: 0.78rem; color: var(--muted); margin-bottom: 1.2rem; background: var(--bg); padding: 8px 12px; border-radius: 8px; }
-
-.close-x {
-    position: absolute;
-    top: 14px; right: 16px;
-    background: var(--bg);
-    border: none;
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    font-size: 1rem;
-    cursor: pointer;
-    color: var(--muted);
-    display: flex; align-items: center; justify-content: center;
+.payment-options label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
 }
 </style>
 </head>
 <body>
 
-<div class="page-wrapper">
-    <!-- LEFT COLUMN -->
-    <div class="left-col">
-
-        <!-- Customer Info -->
-        <div class="section-card">
-            <div class="section-title"><i class="fas fa-user"></i> Customer Information</div>
-            <div class="field-group">
-                <label>Full Name</label>
-                <input type="text" class="field-input" id="fullName" value="{{ request.user.get_full_name }}" readonly>
-            </div>
-            <div class="field-row">
-                <div class="field-group">
-                    <label>Username</label>
-                    <input type="text" class="field-input" value="{{ request.user.username }}" readonly>
-                </div>
-                <div class="field-group">
-                    <label>Email</label>
-                    <input type="email" class="field-input" value="{{ request.user.email }}" readonly>
-                </div>
-            </div>
-            <div class="field-group">
-                <label>Phone Number</label>
-                <input type="text" class="field-input" value="{{ request.user.profile.phone|default:'' }}" readonly>
-            </div>
+<!-- HEADER -->
+<header class="header">
+    <div class="topbar">
+        <div>Language</div>
+        <div>
+            <a href="{% url 'login' %}">Login</a> |
+            <a href="#contact">Contact</a>
         </div>
-
-        <!-- Delivery Location -->
-        <div class="section-card">
-            <div class="section-title"><i class="fas fa-map-marker-alt"></i> Delivery Location</div>
-            <div class="field-row">
-                <div class="field-group">
-                    <label>County</label>
-                    <select class="field-input" id="countySelect" onchange="populateTowns()">
-                        <option value="">— Select County —</option>
-                    </select>
-                </div>
-                <div class="field-group">
-                    <label>Town / Area</label>
-                    <select class="field-input" id="townSelect">
-                        <option value="">— Select Town —</option>
-                    </select>
-                </div>
-            </div>
-            <div class="field-group">
-                <label>Specific Address / Landmark</label>
-                <input type="text" class="field-input" id="addressDetail" placeholder="e.g. Westlands, near ABC Mall">
-            </div>
-        </div>
-
     </div>
-
-    <!-- RIGHT COLUMN — Order Summary -->
-    <div class="order-summary">
-        <div class="section-card">
-            <div class="section-title"><i class="fas fa-shopping-bag"></i> Order Summary</div>
-
-            <!-- Cart items rendered from Django context -->
-            {% for item in cart_items %}
-            <div class="product-line">
-                <img src="{% if item.product.images.first %}{{ item.product.images.first.image.url }}{% else %}{% static 'images/default.png' %}{% endif %}" alt="{{ item.product.name }}">
-                <div class="info">
-                    <h4>{{ item.product.name }}</h4>
-                    <span>Qty: {{ item.quantity }}</span>
-                </div>
-                <div class="price">KES {{ item.product.discounted_price }}</div>
-            </div>
-            {% endfor %}
-
-            <div class="summary-row"><span>Subtotal</span><span>KES {{ cart_total }}</span></div>
-            <div class="summary-row"><span>Delivery</span><span style="color:#00c79c;">Free</span></div>
-            <div class="summary-row total"><span>Total</span><span>KES <span id="orderTotal">{{ cart_total }}</span></span></div>
-
-            <button class="place-order-btn" onclick="openMpesaModal()">
-                <i class="fas fa-mobile-alt"></i> Pay via M-Pesa
-            </button>
+    <div class="navbar">
+        <div class="logo">
+            <a href="{% url 'index' %}"><img src="{% static 'images/logo.png' %}"></a>
+        </div>
+        <nav class="menu">
+            <a href="{% url 'index' %}">Home</a>
+            <a href="{% url 'products' %}">Products</a>
+            <a href="#services">Services</a>
+            <a href="#contact">Contact</a>
+        </nav>
+        <div class="cart">
+            <a href="{% url 'view_cart' %}">🛒</a>
         </div>
     </div>
 </div>
 
-<!-- ===== MPESA MODAL ===== -->
-<div class="modal-overlay" id="mpesaOverlay">
-    <div class="mpesa-modal">
-        <button class="close-x" onclick="closeMpesaModal()">✕</button>
-        <div class="mpesa-logo">📱</div>
-        <h2>M-Pesa Payment</h2>
-        <p class="sub">Secure mobile payment</p>
-        <div class="mpesa-amount">KES <span id="modalAmount">{{ cart_total }}</span></div>
+<form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="items" id="itemsInput">
+    <input type="hidden" name="total" id="totalInput">
 
-        <!-- STATE 1: Enter STK -->
-        <div id="mpesa-state-stk">
-            <div class="phone-hint">
-                <i class="fas fa-info-circle" style="color:var(--primary)"></i>
-                A push notification will be sent to <strong>{{ request.user.profile.phone|default:'your registered number' }}</strong>. Enter your PIN to authorize.
-            </div>
-            <div class="stk-input-wrap">
-                <label>M-Pesa Confirmation Code</label>
-                <input type="text" class="stk-input" id="stkCode" placeholder="e.g. QGH7X3ABC" maxlength="20">
-            </div>
-            <button class="btn-confirm" onclick="confirmPayment()">Confirm Payment</button>
-            <br>
-            <button class="btn-cancel" onclick="closeMpesaModal()">Cancel</button>
-        </div>
+    <h3>Customer Details</h3>
+    <input type="text" name="name" placeholder="Full Name" required>
+    <input type="email" name="email" placeholder="Email Address" required>
+    <input type="text" name="phone" placeholder="Phone Number" required>
+    <textarea name="address" placeholder="Delivery Address" required></textarea>
 
-        <!-- STATE 2: Waiting / Processing -->
-        <div id="mpesa-state-waiting">
-            <div class="spinner-ring"></div>
-            <div class="spinner-text">Processing your payment…<br>Please wait</div>
-        </div>
-
-        <!-- STATE 3: Success -->
-        <div id="mpesa-state-success">
-            <div class="success-circle">
-                <svg viewBox="0 0 52 52"><polyline points="14 27 22 35 38 18"/></svg>
-            </div>
-            <div class="success-title">Payment Successful! 🎉</div>
-            <div class="success-sub">Your order has been placed.<br>We'll notify you when it ships.</div>
-        </div>
+    <h3>Payment Method</h3>
+    <div class="payment-options">
+        <label><input type="radio" name="payment_method" value="card" disabled> Card (coming soon)</label>
+        <label><input type="radio" name="payment_method" value="mpesa" checked> M-Pesa</label>
+        <label><input type="radio" name="payment_method" value="paypal" disabled> PayPal (coming soon)</label>
     </div>
+
+    <button type="submit">Place Order & Pay via M-Pesa</button>
+</form>
+
 </div>
+{% for item in cart_items %}
+<div class="cart-item">
+    <span>{{ item.product.name }}</span>
+    <span>KES {{ item.product.price }}</span>
+</div>
+{% endfor %}
 
 <script>
-// ─── Kenya Counties & Towns Data ───────────────────────────────────────────
-const kenyaData = {
-    "Nairobi": ["Westlands","Kilimani","Karen","Kasarani","Embakasi","Langata","Dagoretti","Makadara","Starehe","Mathare","Roysambu","Ruaraka"],
-    "Mombasa": ["Mvita","Nyali","Kisauni","Changamwe","Jomvu","Likoni"],
-    "Kisumu": ["Kisumu Central","Kisumu East","Kisumu West","Seme","Nyando","Muhoroni","Nyakach"],
-    "Nakuru": ["Nakuru Town East","Nakuru Town West","Naivasha","Gilgil","Subukia","Rongai","Bahati","Molo"],
-    "Eldoret / Uasin Gishu": ["Turbo","Moiben","Ainabkoi","Kapseret","Kesses","Soy"],
-    "Kiambu": ["Thika","Ruiru","Kiambu Town","Limuru","Kikuyu","Kabete","Karuri","Githunguri"],
-    "Machakos": ["Machakos Town","Athi River","Kangundo","Matungulu","Kathiani","Mavoko","Mwala"],
-    "Kajiado": ["Kajiado Central","Ngong","Ongata Rongai","Kitengela","Kiserian","Loitoktok"],
-    "Muranga": ["Muranga Town","Kandara","Kangema","Mathioya","Kigumo","Maragua","Gatanga"],
-    "Nyeri": ["Nyeri Town","Othaya","Mukurweini","Tetu","Kieni East","Kieni West","Mathira"],
-    "Meru": ["Meru Town","Tigania East","Tigania West","Igembe North","Igembe South","Buuri"],
-    "Embu": ["Embu Town","Manyatta","Runyenjes","Mbeere North","Mbeere South"],
-    "Kilifi": ["Kilifi Town","Malindi","Watamu","Kaloleni","Rabai","Ganze","Magarini"],
-    "Kwale": ["Kwale Town","Msambweni","Kinango","Lungalunga","Matuga"],
-    "Lamu": ["Lamu Town","Mpeketoni","Faza","Kiunga"],
-    "Taita-Taveta": ["Voi","Wundanyi","Taveta","Mwatate"],
-    "Tana River": ["Hola","Garsen","Bura"],
-    "Garissa": ["Garissa Town","Dadaab","Fafi","Ijara","Hulugho"],
-    "Wajir": ["Wajir Town","Eldas","Habaswein","Tarbaj","Wajir East","Wajir South"],
-    "Mandera": ["Mandera Town","Mandera East","Mandera North","Mandera West","Lafey"],
-    "Marsabit": ["Marsabit Town","Moyale","Laisamis","Saku"],
-    "Isiolo": ["Isiolo Town","Garbatula","Merti"],
-    "Samburu": ["Maralal","Wamba","Baragoi"],
-    "Turkana": ["Lodwar","Kakuma","Loima","Kibish","Turkana Central"],
-    "West Pokot": ["Kapenguria","Sigor","Kacheliba","Cheptulel"],
-    "Trans Nzoia": ["Kitale","Saboti","Kwanza","Cherangany"],
-    "Baringo": ["Kabarnet","Marigat","Eldama Ravine","Mogotio","Tiaty"],
-    "Laikipia": ["Nanyuki","Rumuruti","Laikipia West","Laikipia North","Laikipia East"],
-    "Nyandarua": ["Ol Kalou","Engineer","Kinangop","Ndaragwa"],
-    "Kirinyaga": ["Kerugoya","Mwea","Ndia","Gichugu","Kirinyaga Central"],
-    "Tharaka-Nithi": ["Chuka","Maara","Tharaka South","Tharaka North"],
-    "Kitui": ["Kitui Town","Mwingi","Mutomo","Migwani","Kyuso"],
-    "Makueni": ["Wote","Sultan Hamud","Makindu","Kibwezi","Kilome"],
-    "Nandi": ["Kapsabet","Mosoriot","Chesumei","Nandi Hills"],
-    "Elgeyo Marakwet": ["Iten","Kapsowar","Marakwet West","Keiyo South"],
-    "Kericho": ["Kericho Town","Londiani","Bureti","Belgut","Sigowet"],
-    "Bomet": ["Bomet Town","Sotik","Chepalungu","Konoin","Mutarakwa"],
-    "Narok": ["Narok Town","Transmara","Kilgoris","Emurua Dikirr"],
-    "Migori": ["Migori Town","Rongo","Uriri","Suna East","Suna West","Awendo"],
-    "Kisii": ["Kisii Town","Nyamache","Gucha","Masaba South","Kitutu Masaba"],
-    "Nyamira": ["Nyamira Town","Borabu","Masaba North","Manga"],
-    "Homa Bay": ["Homa Bay Town","Rachuonyo","Ndhiwa","Mbita","Suba","Rangwe"],
-    "Siaya": ["Siaya Town","Gem","Bondo","Rarieda","Ugenya","Nyatike"],
-    "Vihiga": ["Vihiga Town","Emuhaya","Hamisi","Sabatia","Luanda"],
-    "Kakamega": ["Kakamega Town","Shinyalu","Ikolomani","Malava","Lurambi","Mumias"],
-    "Bungoma": ["Bungoma Town","Sirisia","Mt Elgon","Tongaren","Webuye","Kimilili"],
-    "Busia": ["Busia Town","Teso North","Teso South","Funyula","Butula","Nambale"],
-    "Homa Bay": ["Homa Bay","Mbita","Ndhiwa","Rangwe","Suba","Rachuonyo"]
-};
+// Load cart from localStorage
 
-const countySelect = document.getElementById('countySelect');
-const townSelect = document.getElementById('townSelect');
+let cartItems = document.getElementById("cartItems");
+let total = 0;
 
-Object.keys(kenyaData).sort().forEach(county => {
-    const opt = document.createElement('option');
-    opt.value = county;
-    opt.textContent = county;
-    countySelect.appendChild(opt);
+// Display cart items
+cart.forEach(item => {
+    total += parseFloat(item.price);
+    cartItems.innerHTML += `
+    <div class="cart-item">
+        <span>${item.name}</span>
+        <span>KSh ${item.price}</span>
+    </div>
+    `;
 });
 
-function populateTowns() {
-    const county = countySelect.value;
-    townSelect.innerHTML = '<option value="">— Select Town —</option>';
-    if (county && kenyaData[county]) {
-        kenyaData[county].forEach(town => {
-            const opt = document.createElement('option');
-            opt.value = town;
-            opt.textContent = town;
-            townSelect.appendChild(opt);
-        });
-    }
-}
-
-// ─── M-Pesa Modal ───────────────────────────────────────────────────────────
-function openMpesaModal() {
-    const county = countySelect.value;
-    const town = townSelect.value;
-    if (!county || !town) {
-        alert('Please select your County and Town before proceeding.');
-        return;
-    }
-    showState('stk');
-    document.getElementById('mpesaOverlay').classList.add('active');
-}
-
-function closeMpesaModal() {
-    document.getElementById('mpesaOverlay').classList.remove('active');
-    showState('stk');
-    document.getElementById('stkCode').value = '';
-}
-
-function showState(state) {
-    document.getElementById('mpesa-state-stk').style.display = 'none';
-    document.getElementById('mpesa-state-waiting').style.display = 'none';
-    document.getElementById('mpesa-state-success').style.display = 'none';
-    document.getElementById('mpesa-state-' + state).style.display = 'block';
-}
-
-function confirmPayment() {
-    const code = document.getElementById('stkCode').value.trim();
-    if (!code) {
-        alert('Please enter your M-Pesa confirmation code.');
-        return;
-    }
-    // Show spinner
-    showState('waiting');
-
-    // Simulate processing (replace with real AJAX to backend)
-    setTimeout(() => {
-        showState('success');
-        // Optionally redirect or submit form after 2.5s
-        setTimeout(() => {
-            // window.location.href = "/order-confirmation/";
-        }, 2500);
-    }, 2500);
-}
-
-// Close modal on overlay click
-document.getElementById('mpesaOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeMpesaModal();
-});
+// Set total and form hidden inputs
+document.getElementById("cartTotal").innerText = total;
+document.getElementById("itemsInput").value = JSON.stringify(cart);
+document.getElementById("totalInput").value = total;
 </script>
 </body>
 </html>
