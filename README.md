@@ -151,4 +151,4 @@ GitHub: [github.com/nabiswa-cmd](https://github.com/nabiswa-cmd)
 
 ---
 
-Visit the completed site  on  gadgetsoko.com
+Visit the completed site  on https://gadgetsoko.com
