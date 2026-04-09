@@ -6,8 +6,8 @@
 
 ## Live Deployment
 
-- **Platform:** Vercel / Render
-- **URL:** https://gadgetsoko.vercel.app
+- **Platform:** Hostinger
+- **URL:** https://gadgetsoko.com
 
 ---
 
