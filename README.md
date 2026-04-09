@@ -65,31 +65,6 @@
 
 ---
 
-## 📁 Project Structure
-
-```
-gadgetsoko2/
-├── proj/                   # Django project config
-│   ├── settings.py         # All settings, reads from .env
-│   ├── urls.py             # Root URL routing
-│   └── wsgi.py
-├── app/                    # Main application
-│   ├── models.py           # Brand, Category, Product, Cart, Order, Analytics
-│   ├── views.py            # All view functions
-│   ├── urls.py             # App URL patterns
-│   ├── forms.py            # Signup and other forms
-│   ├── mpesa.py            # M-Pesa STK Push helper
-│   ├── signals.py          # Auto brand-logo assignment signal
-│   ├── context_processors.py  # Cart count injected into all templates
-│   ├── admin.py            # Django admin configuration
-│   └── templates/          # All HTML templates
-├── static/                 # CSS, JS, images
-├── media/                  # User-uploaded product images
-├── requirements.txt
-└── manage.py
-```
-
----
 
 ### `.env` file in the project root
 ```env
@@ -128,29 +103,7 @@ python manage.py collectstatic
 ### 7. Run the development server
 ```bash
 python manage.py runserver
-```
 
-Visit **http://127.0.0.1:8000** in your browser.
-
----
-
-## 🔑 Key URLs
-
-| URL | Description |
-|---|---|
-| `/` | Homepage |
-| `/products/` | All products |
-| `/category/<id>/` | Products by category |
-| `/brand/<id>/` | Products by brand |
-| `/products/<id>/` | Product detail |
-| `/cart/` | Shopping cart |
-| `/check/` | Checkout & M-Pesa payment |
-| `/dashboard/` | Admin dashboard |
-| `/manage_products/` | Add/edit products |
-| `/manage_orders/` | View and update orders |
-| `/accounts/google/login/` | Google OAuth login |
-
----
 
 ## 💳 M-Pesa Integration
 
@@ -198,4 +151,4 @@ GitHub: [github.com/nabiswa-cmd](https://github.com/nabiswa-cmd)
 
 ---
 
-Visit the full site  gadgetsoko.com
+Visit the completed site  on  gadgetsoko.com
